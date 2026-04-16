@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 maiml (maimingliang [at] gmail.com)
+# Licensed under the MIT License
 """
 跨平台 Jenkins 触发脚本。
 
