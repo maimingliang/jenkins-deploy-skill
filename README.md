@@ -70,9 +70,37 @@ python3 --version
 
 Here `python3` simply means a Python 3 interpreter. If `python` in your environment already points to Python 3, you can use `python` directly.
 
+### Secure Credential Setup
+
+Before running the script, prepare your Jenkins API Token in a secure way:
+
+**For Windows**
+- Open **Credential Manager** -> **Windows Credentials** -> **Add a generic credential**
+- **Target**: the `credentialTarget` from `config.json`, for example `jenkins-api-auth-id`
+- **Username**: your Jenkins username
+- **Password**: your Jenkins API Token
+
+**For macOS**
+- Save the credential to Keychain:
+  ```bash
+  security add-generic-password -s "jenkins-api-auth-id" -a "your-jenkins-username" -w "your-api-token"
+  ```
+- The `-s` value must match `credentialTarget` in `config.json`
+
+**For Linux / CI / fallback**
+- Export environment variables before running:
+  ```bash
+  export JENKINS_USERNAME="your-jenkins-username"
+  export JENKINS_API_TOKEN="your-api-token"
+  ```
+
 ### Quick Start
 
-1. **Copy the config template** (run this in the root of the `jenkins-deploy-skill` directory):
+Choose one of the following approaches. Run all commands in the root of the `jenkins-deploy-skill` directory.
+
+#### Option 1: Configure From The Command Line
+
+1. Generate `config.json` from the template.
 
    **Windows (PowerShell):**
    ```powershell
@@ -84,67 +112,85 @@ Here `python3` simply means a Python 3 interpreter. If `python` in your environm
    cp config.example.json config.json
    ```
 
-2. **Edit `config.json`**: Open the newly created `config.json` in your favorite editor (e.g., VS Code, Notepad) and fill in your Jenkins details:
+2. Update the required fields in `config.json` from the terminal.
 
-   ```json
-   {
-     "jenkinsBaseUrl": "http://your-jenkins-server:8080",
-     "jobName": "your-job-name",
-     "credentialTarget": "jenkins-api-auth-id",
-     "branch": "dev",
-     "branchParamName": "BRANCH"
-   }
-   ```
-
-3. **Securely save your Jenkins API Token**
-
-   **For Windows**
-   - Open **Credential Manager** -> **Windows Credentials** -> **Add a generic credential**
-   - **Target**: the `credentialTarget` from `config.json`, for example `jenkins-api-auth-id`
-   - **Username**: your Jenkins username
-   - **Password**: your Jenkins API Token
-
-   **For macOS**
-   - Save the credential to Keychain:
-     ```bash
-     security add-generic-password -s "jenkins-api-auth-id" -a "your-jenkins-username" -w "your-api-token"
-     ```
-   - The `-s` value must match `credentialTarget` in `config.json`
-
-   **For Linux / CI / fallback**
-   - Export environment variables before running:
-     ```bash
-     export JENKINS_USERNAME="your-jenkins-username"
-     export JENKINS_API_TOKEN="your-api-token"
-     ```
-
-4. **Run the script**
-
-   **Windows**
+   **Windows (PowerShell):**
    ```powershell
-   powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1
+   $config = Get-Content .\config.json -Raw | ConvertFrom-Json
+   $config.jenkinsBaseUrl = "http://your-jenkins-server:8080"
+   $config.jobName = "your-job-name"
+   $config.credentialTarget = "jenkins-api-auth-id"
+   $config.branch = "dev"
+   $config.branchParamName = "BRANCH"
+   $config | ConvertTo-Json -Depth 10 | Set-Content .\config.json
    ```
 
-   **macOS / Linux**
+   **macOS / Linux (Bash):**
    ```bash
-   python3 ./scripts/trigger_jenkins_build.py
+   python3 - <<'PY'
+   import json
+   from pathlib import Path
+   path = Path("config.json")
+   config = json.loads(path.read_text(encoding="utf-8"))
+   config["jenkinsBaseUrl"] = "http://your-jenkins-server:8080"
+   config["jobName"] = "your-job-name"
+   config["credentialTarget"] = "jenkins-api-auth-id"
+   config["branch"] = "dev"
+   config["branchParamName"] = "BRANCH"
+   path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+   PY
    ```
 
-### CLI Parameters
+3. Verify that `config.json` exists and contains the expected values.
 
-Both scripts support the same parameter names. All parameters are optional if they are already set in `config.json`.
+   **Windows (PowerShell):**
+   ```powershell
+   Get-Content .\config.json
+   ```
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `-ConfigFile` | Path to config JSON file | `../config.json` relative to script |
-| `-TargetEnv` | Configuration environment to inherit from `config.json` | `""` |
-| `-JenkinsBaseUrl` | Jenkins server URL | from config |
-| `-JobName` | Jenkins job name | from config |
-| `-Username` | Jenkins username, overrides local credential lookup | from local credential |
-| `-ApiToken` | Jenkins API token, overrides local credential lookup | from local credential |
-| `-CredentialTarget` | Target name in Windows Credential Manager or macOS Keychain | from config |
-| `-Branch` | Branch to build | `dev` |
-| `-BranchParamName` | Jenkins parameter name for the branch | `BRANCH` |
+   **macOS / Linux (Bash):**
+   ```bash
+   cat ./config.json
+   ```
+
+#### Option 2: Configure Manually
+
+1. Generate `config.json` from `config.example.json`.
+
+   **Windows (PowerShell):**
+   ```powershell
+   Copy-Item config.example.json config.json
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cp config.example.json config.json
+   ```
+
+2. Open `config.json` in the root of the `jenkins-deploy-skill` directory with your preferred editor, such as VS Code or Notepad.
+
+3. Replace the placeholder values with your real Jenkins configuration. The key fields are:
+
+   | Field | Description | Typical value |
+   |-------|-------------|---------------|
+   | `jenkinsBaseUrl` | Jenkins server URL | `http://your-jenkins-server:8080` |
+   | `jobName` | Jenkins job name to trigger | `your-job-name` |
+   | `credentialTarget` | Credential target name used by Windows Credential Manager or macOS Keychain | `jenkins-api-auth-id` |
+   | `branch` | Default branch to build | `dev` |
+   | `branchParamName` | Jenkins parameter name used for the branch | `BRANCH` |
+   | `environments` | Optional per-environment overrides such as `test` and `pre` | see `config.example.json` |
+
+4. Save the file and quickly verify the final content.
+
+   **Windows (PowerShell):**
+   ```powershell
+   Get-Content .\config.json
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cat ./config.json
+   ```
 
 ### Project Structure
 
@@ -260,9 +306,37 @@ python3 --version
 
 这里的 `python3` 仅表示 Python 3 解释器；如果你的环境里 `python` 已经指向 Python 3，也可以直接用 `python`。
 
+### 安全凭据配置
+
+在运行脚本之前，请先以安全的方式准备好 Jenkins API Token：
+
+**Windows**
+- 打开 **凭据管理器** -> **Windows 凭据** -> **添加普通凭据**
+- **目标名称**：填写 `config.json` 中的 `credentialTarget`
+- **用户名**：你的 Jenkins 用户名
+- **密码**：你的 Jenkins API Token
+
+**macOS**
+- 打开终端，将凭据保存到系统钥匙串：
+  ```bash
+  security add-generic-password -s "jenkins-api-auth-id" -a "your-jenkins-username" -w "your-api-token"
+  ```
+- 这里的 `-s` 必须与 `config.json` 中的 `credentialTarget` 一致
+
+**Linux / CI / 通用兜底**
+- 执行前设置环境变量：
+  ```bash
+  export JENKINS_USERNAME="your-jenkins-username"
+  export JENKINS_API_TOKEN="your-api-token"
+  ```
+
 ### 快速开始
 
-1. **复制配置模板**（请在 `jenkins-deploy-skill` 根目录下执行）：
+你可以选择以下任意一种方式。所有命令都请在 `jenkins-deploy-skill` 根目录下执行。
+
+#### 方式一：命令行修改
+
+1. 先根据模板生成 `config.json`。
 
    **Windows (PowerShell):**
    ```powershell
@@ -274,67 +348,85 @@ python3 --version
    cp config.example.json config.json
    ```
 
-2. **编辑 `config.json`**：使用你喜欢的编辑器（如 VS Code、记事本等）打开 `config.json` 并填入 Jenkins 信息：
+2. 通过命令行直接修改 `config.json` 中的关键字段。
 
-   ```json
-   {
-     "jenkinsBaseUrl": "http://your-jenkins-server:8080",
-     "jobName": "your-job-name",
-     "credentialTarget": "jenkins-api-auth-id",
-     "branch": "dev",
-     "branchParamName": "BRANCH"
-   }
-   ```
-
-3. **安全保存 Jenkins API Token**
-
-   **Windows**
-   - 打开 **凭据管理器** -> **Windows 凭据** -> **添加普通凭据**
-   - **目标名称**：填写 `config.json` 中的 `credentialTarget`
-   - **用户名**：你的 Jenkins 用户名
-   - **密码**：你的 Jenkins API Token
-
-   **macOS**
-   - 打开终端，将凭据保存到系统钥匙串：
-     ```bash
-     security add-generic-password -s "jenkins-api-auth-id" -a "your-jenkins-username" -w "your-api-token"
-     ```
-   - 这里的 `-s` 必须与 `config.json` 中的 `credentialTarget` 一致
-
-   **Linux / CI / 通用兜底**
-   - 执行前设置环境变量：
-     ```bash
-     export JENKINS_USERNAME="your-jenkins-username"
-     export JENKINS_API_TOKEN="your-api-token"
-     ```
-
-4. **运行脚本**
-
-   **Windows**
+   **Windows (PowerShell):**
    ```powershell
-   powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1
+   $config = Get-Content .\config.json -Raw | ConvertFrom-Json
+   $config.jenkinsBaseUrl = "http://your-jenkins-server:8080"
+   $config.jobName = "your-job-name"
+   $config.credentialTarget = "jenkins-api-auth-id"
+   $config.branch = "dev"
+   $config.branchParamName = "BRANCH"
+   $config | ConvertTo-Json -Depth 10 | Set-Content .\config.json
    ```
 
-   **macOS / Linux**
+   **macOS / Linux (Bash):**
    ```bash
-   python3 ./scripts/trigger_jenkins_build.py
+   python3 - <<'PY'
+   import json
+   from pathlib import Path
+   path = Path("config.json")
+   config = json.loads(path.read_text(encoding="utf-8"))
+   config["jenkinsBaseUrl"] = "http://your-jenkins-server:8080"
+   config["jobName"] = "your-job-name"
+   config["credentialTarget"] = "jenkins-api-auth-id"
+   config["branch"] = "dev"
+   config["branchParamName"] = "BRANCH"
+   path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+   PY
    ```
 
-### CLI 参数
+3. 检查 `config.json` 是否已经生成，并确认配置内容符合预期。
 
-两套脚本支持相同的参数名。如果这些值已经写入 `config.json`，运行时都可以省略。
+   **Windows (PowerShell):**
+   ```powershell
+   Get-Content .\config.json
+   ```
 
-| 参数 | 说明 | 默认值 |
-|------|------|--------|
-| `-ConfigFile` | 配置文件路径 | 相对脚本的 `../config.json` |
-| `-TargetEnv` | 从 `config.json` 继承的环境名 | `""` |
-| `-JenkinsBaseUrl` | Jenkins 服务地址 | 读取配置 |
-| `-JobName` | Jenkins Job 名称 | 读取配置 |
-| `-Username` | Jenkins 用户名，优先于本地凭据读取 | 读取本地凭据 |
-| `-ApiToken` | Jenkins API Token，优先于本地凭据读取 | 读取本地凭据 |
-| `-CredentialTarget` | Windows Credential Manager 或 macOS Keychain 中的目标名称 | 读取配置 |
-| `-Branch` | 要构建的分支 | `dev` |
-| `-BranchParamName` | Jenkins 中分支参数名 | `BRANCH` |
+   **macOS / Linux (Bash):**
+   ```bash
+   cat ./config.json
+   ```
+
+#### 方式二：手动修改
+
+1. 先根据 `config.example.json` 生成 `config.json`。
+
+   **Windows (PowerShell):**
+   ```powershell
+   Copy-Item config.example.json config.json
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cp config.example.json config.json
+   ```
+
+2. 使用你喜欢的编辑器在 `jenkins-deploy-skill` 根目录中打开 `config.json`，例如 VS Code、记事本或其他文本编辑器。
+
+3. 将示例占位值替换成你自己的 Jenkins 配置。关键字段如下：
+
+   | 字段 | 说明 | 常见取值 |
+   |------|------|----------|
+   | `jenkinsBaseUrl` | Jenkins 服务地址 | `http://your-jenkins-server:8080` |
+   | `jobName` | 要触发的 Jenkins Job 名称 | `your-job-name` |
+   | `credentialTarget` | Windows Credential Manager 或 macOS Keychain 使用的凭据目标名 | `jenkins-api-auth-id` |
+   | `branch` | 默认要构建的分支 | `dev` |
+   | `branchParamName` | Jenkins 中分支参数名 | `BRANCH` |
+   | `environments` | 可选的多环境覆盖配置，例如 `test`、`pre` | 参考 `config.example.json` |
+
+4. 保存文件后，使用下面的命令快速确认最终配置内容。
+
+   **Windows (PowerShell):**
+   ```powershell
+   Get-Content .\config.json
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cat ./config.json
+   ```
 
 ### 项目结构
 
