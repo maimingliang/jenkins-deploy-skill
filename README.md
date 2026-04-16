@@ -18,15 +18,6 @@ An AI Agent skill/prompt that automates the "merge → push → trigger Jenkins 
 - 🌍 **Multi-Environment** — Core inheritance pattern in `config.json` for environments like `dev`, `test`, `pre`
 - 🛡️ **CSRF-safe** — Automatically fetches Jenkins crumb for CSRF protection
 
-### 🤖 AI-Powered Installation (Recommended)
-
-If you are using an AI assistant (Cursor, Claude Code, etc.), simply ask it to run this command:
-
-```powershell
-# For Windows/macOS: One-liner to clone and link to current project
-powershell -ExecutionPolicy Bypass -c "iwr https://raw.githubusercontent.com/maimingliang/jenkins-deploy-skill/main/install.ps1 -useb | iex"
-```
-
 ### Installation (For AI Assistants)
 
 This skill is simply a collection of standard files. There is no heavy plugin to install.
@@ -179,15 +170,6 @@ As an automated AI skill, a Git merge conflict will interrupt the execution. If 
 - ⚙️ **可配置** — 所有参数通过 `config.json` 驱动，支持命令行覆盖
 - 🌍 **多环境支持** — 配置文件支持 `environments` 参数继承机制（如独立配置 `dev` / `test`）
 - 🛡️ **CSRF 安全** — 自动获取 Jenkins crumb
-
-### 🤖 AI 智能安装（推荐）
-
-如果您正在使用 AI 助手（Cursor, Claude Code 等），直接在聊天框贴入以下指令让它执行即可：
-
-```powershell
-# 适用于 Windows/macOS：一键克隆并关联至当前项目
-powershell -ExecutionPolicy Bypass -c "iwr https://raw.githubusercontent.com/maimingliang/jenkins-deploy-skill/main/install.ps1 -useb | iex"
-```
 
 ### 安装指南 (适配各大 AI 工具)
 

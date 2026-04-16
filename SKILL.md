@@ -19,18 +19,6 @@ description: >
 - Trigger a Jenkins Job build on that branch
 - Branch, URL, and credentials can dynamically change based on the target environment
 
-## AI Self-Setup & Initialization
-
-When you are first summoned in a project, you **MUST** verify if the environment is ready. If it's not, guide the user through these steps:
-
-1. **Check for `config.json`**:
-   - If missing in the skill root, tell the user: "You haven't configured your Jenkins server yet. Please copy `config.example.json` to `config.json` and fill in the details."
-2. **Check for Project Linkage**:
-   - If the user is asking you to deploy but you don't see a local `.cursorrules` or `.clauderc` with this skill's logic, suggest they run the installer one-liner:
-     `powershell -ExecutionPolicy Bypass -c "iwr https://raw.githubusercontent.com/maimingliang/jenkins-deploy-skill/main/install.ps1 -useb | iex"`
-3. **Check Credentials**:
-   - If a build fails with 401/403, specifically advise the user to check their Windows Credential Manager or macOS Keychain.
-
 ## Prerequisites
 
 Before using this skill you need to:
