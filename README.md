@@ -84,7 +84,7 @@ Here `python3` simply means a Python 3 interpreter. If `python` in your environm
    cp config.example.json config.json
    ```
 
-2. **Edit `config.json`** with your Jenkins details:
+2. **Edit `config.json`**: Open the newly created `config.json` in your favorite editor (e.g., VS Code, Notepad) and fill in your Jenkins details:
 
    ```json
    {
@@ -274,7 +274,7 @@ python3 --version
    cp config.example.json config.json
    ```
 
-2. **编辑 `config.json`**，填入 Jenkins 信息：
+2. **编辑 `config.json`**：使用你喜欢的编辑器（如 VS Code、记事本等）打开 `config.json` 并填入 Jenkins 信息：
 
    ```json
    {
