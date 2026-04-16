@@ -10,13 +10,13 @@ An AI Agent skill/prompt that automates the "merge -> push -> trigger Jenkins bu
 
 ### Features
 
-- Git flow: safely merges and pushes to the deploy branch, with force-push forbidden
-- Jenkins trigger: fires a parameterised build via Jenkins REST API
-- Secure credentials: supports Windows Credential Manager, macOS Keychain, and environment-variable fallback
-- Auto-install on Windows: automatically installs the `CredentialManager` PowerShell module if missing
-- Configurable: all values are driven by `config.json` with CLI overrides
-- Multi-environment: supports an inheritance pattern in `config.json` for environments like `dev`, `test`, and `pre`
-- CSRF-safe: automatically fetches Jenkins crumb for CSRF protection
+- 🔀 **Git flow** — safely merges and pushes to the deploy branch, with force-push forbidden
+- 🚀 **Jenkins trigger** — fires a parameterised build via Jenkins REST API
+- 🔐 **Secure credentials** — supports Windows Credential Manager, macOS Keychain, and environment-variable fallback
+- 📦 **Auto-install (Windows)** — automatically installs the `CredentialManager` PowerShell module if missing
+- ⚙️ **Configurable** — all values are driven by `config.json` with CLI overrides
+- 🌍 **Multi-environment** — supports an inheritance pattern in `config.json` for environments like `dev`, `test`, and `pre`
+- 🛡️ **CSRF-safe** — automatically fetches Jenkins crumb for CSRF protection
 
 ### Installation (For AI Assistants)
 
@@ -194,13 +194,13 @@ As an automated AI skill, a Git merge conflict should interrupt the flow. If a c
 
 ### 特性
 
-- Git 流程：安全地合并并推送到部署分支，严格禁止 force push
-- Jenkins 触发：通过 REST API 触发参数化构建
-- 安全凭据：支持 Windows Credential Manager、macOS Keychain 和环境变量兜底
-- Windows 自动安装：缺少 `CredentialManager` PowerShell 模块时会自动安装
-- 可配置：所有参数由 `config.json` 驱动，并支持命令行覆盖
-- 多环境支持：支持在 `config.json` 中为 `dev`、`test`、`pre` 等环境做继承覆盖
-- CSRF 安全：自动获取 Jenkins crumb
+- 🔀 **Git 流程** — 安全地合并并推送到部署分支，严格禁止 force push
+- 🚀 **Jenkins 触发** — 通过 REST API 触发参数化构建
+- 🔐 **安全凭据** — 支持 Windows Credential Manager、macOS Keychain 和环境变量兜底
+- 📦 **自动安装 (Windows)** — 缺少 `CredentialManager` PowerShell 模块时会自动安装
+- ⚙️ **可配置** — 所有参数由 `config.json` 驱动，并支持命令行覆盖
+- 🌍 **多环境支持** — 支持在 `config.json` 中为 `dev`、`test`、`pre` 等环境做继承覆盖
+- 🛡️ **CSRF 安全** — 自动获取 Jenkins crumb
 
 ### 安装指南（适配各大 AI 工具）
 
