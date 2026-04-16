@@ -93,27 +93,54 @@ The following are **always forbidden**:
 
 Run the trigger script from the skill directory:
 
+**On Windows**
 ```powershell
 powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1
 ```
 
+**On macOS / Linux**
+```bash
+python3 ./scripts/trigger_jenkins_build.py
+```
+
+Here `python3` simply means a Python 3 interpreter. If `python` in the current environment already points to Python 3, using `python` is also acceptable.
+
 The script reads its defaults from `config.json` in the skill root directory.
+
+When choosing the script, you **MUST** follow the platform:
+1. Windows -> `trigger_jenkins_build.ps1`
+2. macOS / Linux -> `trigger_jenkins_build.py`
 
 If the USER explicitly requests to deploy to a specific environment (e.g., "部署到 test 环境" or "deploy pre"), you **MUST**:
 1. Check out that environment's target branch (e.g. `test` or `pre`) instead of `dev`.
 2. Push your code to that branch.
 3. Pass the `-TargetEnv <env>` parameter to the script so it dynamically loads the correct Jenkins URL and credentials.
 
+**Windows**
 ```powershell
 powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 -TargetEnv test
 ```
 
+**macOS / Linux**
+```bash
+python3 ./scripts/trigger_jenkins_build.py -TargetEnv test
+```
+
 To individually override values at runtime:
 
+**Windows**
 ```powershell
 powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 `
   -TargetEnv "test" `
   -Username "<your-jenkins-username>" `
+  -Branch "test"
+```
+
+**macOS / Linux**
+```bash
+python3 ./scripts/trigger_jenkins_build.py \
+  -TargetEnv "test" \
+  -Username "<your-jenkins-username>" \
   -Branch "test"
 ```
 
@@ -161,6 +188,12 @@ If running on Windows and the `CredentialManager` PowerShell module is not insta
 2. Mark `PSGallery` as Trusted
 3. Install the `CredentialManager` module (CurrentUser scope)
 4. Continue execution
+
+## Platform Behavior
+
+- Windows keeps using `trigger_jenkins_build.ps1` so the existing CredentialManager auto-install flow remains unchanged
+- macOS uses `trigger_jenkins_build.py`, which reads credentials from Keychain via the built-in `security` command
+- Linux / CI uses `trigger_jenkins_build.py` with `JENKINS_USERNAME` and `JENKINS_API_TOKEN` as the fallback path
 
 ## Troubleshooting
 

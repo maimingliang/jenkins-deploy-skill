@@ -8,6 +8,7 @@ Thank you for considering contributing to this project! 🎉
 
 - Use [GitHub Issues](../../issues) to report bugs or request features
 - Include your PowerShell version (`$PSVersionTable.PSVersion`)
+- If the issue is on macOS/Linux, include your Python version (`python3 --version`)
 - Include the error message and steps to reproduce
 
 ### Submitting Changes
@@ -31,7 +32,9 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 ### Code Style
 
 - PowerShell scripts should follow the [PowerShell Practice and Style Guide](https://poshcode.gitbook.io/powershell-practice-and-style/)
+- Python scripts should follow standard library-first, dependency-light practices
 - Use `PascalCase` for function names
+- Use `snake_case` for Python function names
 - Use comment-based help for all public functions
 - Keep error messages clear and actionable
 

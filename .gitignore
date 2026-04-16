@@ -18,3 +18,8 @@ ehthumbs.db
 
 # PowerShell module cache
 PSModules/
+.serena/
+
+# Python cache
+__pycache__/
+*.pyc
