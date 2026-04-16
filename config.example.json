@@ -1,0 +1,21 @@
+{
+  "jenkinsBaseUrl": "http://your-internal-jenkins:8080",
+  "jobName": "your-internal-job",
+  "credentialTarget": "jenkins-api-auth-id",
+  "branch": "dev",
+  "branchParamName": "BRANCH",
+  "environments": {
+    "test": {
+      "jenkinsBaseUrl": "https://your-cloud-jenkins.corp.com",
+      "jobName": "your-cloud-test-job",
+      "credentialTarget": "jenkins-cloud-auth-id",
+      "branch": "test"
+    },
+    "pre": {
+      "jenkinsBaseUrl": "https://your-cloud-jenkins.corp.com",
+      "jobName": "your-cloud-pre-job",
+      "credentialTarget": "jenkins-cloud-auth-id",
+      "branch": "pre"
+    }
+  }
+}

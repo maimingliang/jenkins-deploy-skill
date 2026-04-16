@@ -1,0 +1,20 @@
+# User-specific configuration (contains secrets/internal URLs)
+config.json
+
+# Windows system files
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# macOS system files
+.DS_Store
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# PowerShell module cache
+PSModules/
