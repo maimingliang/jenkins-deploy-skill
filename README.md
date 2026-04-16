@@ -72,7 +72,7 @@ Here `python3` simply means a Python 3 interpreter. If `python` in your environm
 
 ### Quick Start
 
-1. **Copy the config template** (run this in the root of the `jenkins-deploy-skill` directory):
+1. **Initialize configuration**: Go to the `jenkins-deploy-skill` root directory and create `config.json` from the example template:
 
    **Windows (PowerShell):**
    ```powershell
@@ -262,7 +262,7 @@ python3 --version
 
 ### 快速开始
 
-1. **复制配置模板**（请在 `jenkins-deploy-skill` 根目录下执行）：
+1. **初始化配置**：进入 `jenkins-deploy-skill` 根目录，从模板文件 `config.example.json` 复制一份名为 `config.json` 的新文件：
 
    **Windows (PowerShell):**
    ```powershell
