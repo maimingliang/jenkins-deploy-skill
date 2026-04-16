@@ -72,10 +72,16 @@ Here `python3` simply means a Python 3 interpreter. If `python` in your environm
 
 ### Quick Start
 
-1. **Copy the config template**
+1. **Copy the config template** (run this in the root of the `jenkins-deploy-skill` directory):
 
+   **Windows (PowerShell):**
    ```powershell
    Copy-Item config.example.json config.json
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cp config.example.json config.json
    ```
 
 2. **Edit `config.json`** with your Jenkins details:
@@ -256,10 +262,16 @@ python3 --version
 
 ### 快速开始
 
-1. **复制配置模板**
+1. **复制配置模板**（请在 `jenkins-deploy-skill` 根目录下执行）：
 
+   **Windows (PowerShell):**
    ```powershell
    Copy-Item config.example.json config.json
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cp config.example.json config.json
    ```
 
 2. **编辑 `config.json`**，填入 Jenkins 信息：
