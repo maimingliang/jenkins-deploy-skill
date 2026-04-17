@@ -1,14 +1,11 @@
 ---
 name: jenkins-deploy-skill
-version: 1.0.0
-author: maiml
-repository: https://github.com/maimingliang/jenkins-deploy-skill
-tags: [jenkins, deploy, ci-cd, git, devops]
 description: >
-  An AI skill for deploying code via Git merge and triggering Jenkins builds.
-  Merges your working branch into a target branch, then triggers a Jenkins
-  parameterised build. Supports reading credentials from Windows Credential Manager, 
-  macOS Keychain, Environment Variables, and has built-in multi-environment inheritance.
+  Use this skill whenever the user mentions deploying, pushing to Jenkins,
+  triggering a build, or merging to a deploy branch such as dev, test, or pre.
+  It automates "merge -> push -> Jenkins build" with secure credential handling
+  across Windows, macOS, and Linux. Invoke it for requests like "帮我部署",
+  "push 到 test 环境", "deploy pre", or "触发 Jenkins 构建".
 ---
 
 # Jenkins Deploy Skill
@@ -91,7 +88,10 @@ The following are **always forbidden**:
 
 ### Option 2: Via Script
 
-Run the trigger script from the skill directory:
+Run the trigger script only when this skill is installed from the filesystem and the
+`scripts/` directory is actually present on disk. If the skill was installed as plain
+text instructions only, such as in `.cursorrules` or a knowledge base upload, the
+script files will not exist and you should use the Jenkins Web UI flow instead.
 
 **On Windows**
 ```powershell
@@ -107,14 +107,20 @@ Here `python3` simply means a Python 3 interpreter. If `python` in the current e
 
 The script reads its defaults from `config.json` in the skill root directory.
 
-When choosing the script, you **MUST** follow the platform:
+Choose the script that matches the current platform:
 1. Windows -> `trigger_jenkins_build.ps1`
 2. macOS / Linux -> `trigger_jenkins_build.py`
 
-If the USER explicitly requests to deploy to a specific environment (e.g., "部署到 test 环境" or "deploy pre"), you **MUST**:
+The platform split matters because the PowerShell script relies on Windows-specific
+credential handling, while the Python entrypoint is the portable path for macOS/Linux.
+
+If the user explicitly requests a specific environment such as "部署到 test 环境" or
+"deploy pre", switch to that environment's target branch instead of the default `dev`,
+push to that branch, and pass the matching environment flag to the script so it can
+load the correct Jenkins URL and credentials:
 1. Check out that environment's target branch (e.g. `test` or `pre`) instead of `dev`.
 2. Push your code to that branch.
-3. Pass the `-TargetEnv <env>` parameter to the script so it dynamically loads the correct Jenkins URL and credentials.
+3. Pass `-TargetEnv <env>` on PowerShell or `--target-env <env>` on Python so the script dynamically loads the correct Jenkins URL and credentials.
 
 **Windows**
 ```powershell
@@ -123,7 +129,7 @@ powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 -Ta
 
 **macOS / Linux**
 ```bash
-python3 ./scripts/trigger_jenkins_build.py -TargetEnv test
+python3 ./scripts/trigger_jenkins_build.py --target-env test
 ```
 
 To individually override values at runtime:
@@ -139,9 +145,9 @@ powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 `
 **macOS / Linux**
 ```bash
 python3 ./scripts/trigger_jenkins_build.py \
-  -TargetEnv "test" \
-  -Username "<your-jenkins-username>" \
-  -Branch "test"
+  --target-env "test" \
+  --username "<your-jenkins-username>" \
+  --branch "test"
 ```
 
 ## Jenkins Token Setup
@@ -217,7 +223,7 @@ If running on Windows and the `CredentialManager` PowerShell module is not insta
 ### Merge conflicts occur during deployment
 
 - If a Git merge conflict happens, the automated process will pause or fail
-- **CRITICAL: You (the AI) MUST NOT attempt to resolve source-code merge conflicts autonomously.** Incorrect conflict resolution can silently introduce bugs into production. Always defer to the human developer
+- Do not resolve source-code merge conflicts autonomously. Conflict resolution needs business context, and an incorrect automatic choice can silently introduce bugs into production. Hand the conflict back to the human developer instead
 - Abort the in-progress merge/rebase immediately: `git merge --abort` or `git rebase --abort`
 - Inform the user that manual conflict resolution is required
 - The user will resolve conflicts in their IDE, commit, and then re-invoke this skill to complete the push and trigger

@@ -2,6 +2,15 @@
 
 [English](#english) | [中文](#中文)
 
+## Project Metadata
+
+| Field | Value |
+|-------|-------|
+| Version | `1.0.0` |
+| Author | `maiml` |
+| Repository | [maimingliang/jenkins-deploy-skill](https://github.com/maimingliang/jenkins-deploy-skill) |
+| Tags | `jenkins`, `deploy`, `ci-cd`, `git`, `devops` |
+
 ---
 
 ## English
@@ -38,13 +47,19 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
    - **Cursor / Windsurf**: copy the contents of `SKILL.md` to `.cursorrules`
      - Windows: `%USERPROFILE%\.cursorrules`
      - macOS/Linux: `~/.cursorrules`
-   - **Claude Code (CLI)**: copy the contents to `.clauderc`
-     - Windows: `%USERPROFILE%\.clauderc`
-     - macOS/Linux: `~/.clauderc`
+   - **Claude Code (CLI)**: place this entire folder into the Claude skills directory
+     - Windows: `%USERPROFILE%\.claude\skills\`
+     - macOS/Linux: `~/.claude/skills/`
    - **GitHub Copilot**: copy the contents to `.github/copilot-instructions.md`
      - Windows: `%USERPROFILE%\.github\copilot-instructions.md`
      - macOS/Linux: `~/.github/copilot-instructions.md`
    - **Claude Projects / ChatGPT**: upload `SKILL.md` into the knowledge base or custom instructions
+
+Only filesystem-style installations such as Codex or Claude skills directories include
+the `scripts/` folder on disk. Text-only integrations such as `.cursorrules`,
+Copilot instructions, or knowledge-base uploads can still use the prompt guidance,
+but they cannot execute `./scripts/trigger_jenkins_build.*` unless you copy those
+files into a local tools directory yourself.
 
 ### Prerequisites
 
@@ -211,7 +226,7 @@ jenkins-deploy-skill/
 
 If you map different environments to different Jenkins nodes, for example internal Jenkins for `dev` and cloud Jenkins for `test`, you only need to configure the `environments` block in `config.json` and follow the override pattern shown in `config.example.json`.
 
-At runtime, you can simply tell the AI something like "deploy to test". The AI will automatically append `-TargetEnv` in the background and switch to the correct internal or cloud environment.
+At runtime, you can simply tell the AI something like "deploy to test". The AI will automatically append the environment flag in the background and switch to the correct internal or cloud environment.
 
 **Windows**
 ```powershell
@@ -220,7 +235,7 @@ powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 -Ta
 
 **macOS / Linux**
 ```bash
-python3 ./scripts/trigger_jenkins_build.py -TargetEnv test
+python3 ./scripts/trigger_jenkins_build.py --target-env test
 ```
 
 ### Troubleshooting
@@ -274,13 +289,18 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
    - **Cursor / Windsurf**：复制 `SKILL.md` 内容到 `.cursorrules`
      - Windows: `%USERPROFILE%\.cursorrules`
      - macOS/Linux: `~/.cursorrules`
-   - **Claude Code (CLI)**：复制内容到 `.clauderc`
-     - Windows: `%USERPROFILE%\.clauderc`
-     - macOS/Linux: `~/.clauderc`
+   - **Claude Code (CLI)**：将整个目录放入 Claude 技能目录
+     - Windows: `%USERPROFILE%\.claude\skills\`
+     - macOS/Linux: `~/.claude/skills/`
    - **GitHub Copilot**：复制内容到 `.github/copilot-instructions.md`
      - Windows: `%USERPROFILE%\.github\copilot-instructions.md`
      - macOS/Linux: `~/.github/copilot-instructions.md`
    - **Claude Projects / ChatGPT**：直接上传 `SKILL.md` 到知识库，或填入自定义指令
+
+只有像 Codex 或 Claude 技能目录这样的文件系统安装方式，才会把 `scripts/`
+目录一并放到本地磁盘。像 `.cursorrules`、Copilot 指令文件、知识库上传这类纯文
+本接入方式，依然可以复用提示词，但默认并不能直接执行
+`./scripts/trigger_jenkins_build.*`，除非您另外把脚本复制到本地工具目录。
 
 ### 环境检查
 
@@ -447,7 +467,8 @@ jenkins-deploy-skill/
 
 如果您在不同的环境对应了不同的 Jenkins 节点，例如内网发 `dev`，云端发 `test`，您只要在 `config.json` 中配置 `environments` 节点，并参考 `config.example.json` 里的覆盖规则即可。
 
-运行时，您只需在聊天框对 AI 说“帮我发 test 环境”，AI 就会在后台自动带上 `-TargetEnv` 参数，智能切换到正确的内网或云端环境。
+运行时，您只需在聊天框对 AI 说“帮我发 test 环境”，AI 就会在后台自动补上对应
+的环境参数，智能切换到正确的内网或云端环境。
 
 **Windows**
 ```powershell
@@ -456,7 +477,7 @@ powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 -Ta
 
 **macOS / Linux**
 ```bash
-python3 ./scripts/trigger_jenkins_build.py -TargetEnv test
+python3 ./scripts/trigger_jenkins_build.py --target-env test
 ```
 
 ### 常见问题与排错
