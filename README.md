@@ -68,11 +68,12 @@ Before running the script, prepare your Jenkins API Token in a secure way:
 
 ### Installation (For AI Assistants)
 
-#### Install By Chat
+#### 1. Automatic Installation (Recommended)
 
-If your AI assistant supports installing skills directly from a repository URL, you can simply say this in chat:
+If your AI assistant (e.g., Codex, Claude Code) supports installing skills directly from a repository URL, simply send the following command:
 
-Copy the full line below, including the trailing `skill` keyword, and send it in your AI assistant's chat:
+> [!TIP]
+> Copy the full line below (including the trailing `skill` keyword) and send it directly:
 
 ```text
 https://github.com/maimingliang/jenkins-deploy-skill skill
@@ -109,7 +110,7 @@ Not sure which install path to use? Start with **Install By Chat** above. If you
 
 If you are setting up a single Jenkins job, start here. Run all commands in the root of the `jenkins-deploy-skill` directory.
 
-This section uses the simpler single-project layout from `config.example.json`. In the recommended layout, `dev`, `test`, and `pre` are all written explicitly under `environments`, which is easier to read at a glance. If you want one skill to manage multiple projects, jump to [Advanced: Multi-Project And Multi-Environment](#advanced-multi-project-and-multi-environment).
+This section introduces the most common single-project lightweight configuration (refer to `config.example.json`). We recommend explicitly defining your `dev`, `test`, and `pre` environments within the `environments` block for clear management and switching. If you need to manage multiple independent projects through a single Skill, please refer to [Advanced: Multi-Project And Multi-Environment](#advanced-multi-project-and-multi-environment) below.
 
 #### Option 1: Configure Manually
 
@@ -136,7 +137,7 @@ This section uses the simpler single-project layout from `config.example.json`. 
    | `defaultEnvironment` | Default environment when no environment is specified | `dev` |
    | `branchParamName` | Jenkins parameter name used for the branch | `BRANCH` |
    | `environments` | Environment blocks such as `dev`, `test`, and `pre`, each with its own Jenkins URL, job name, branch, and `credentialTarget` | see `config.example.json` |
-   | `gitFlow` | Optional deployment workflow rules such as auto-commit and chained release | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
+   | `gitFlow` | Optional deployment workflow rules:<br>• `autoCommitBeforeDeploy`: Auto-commit local changes before deployment<br>• `allowCascadePromote`: Enable one-click promotion from working branch to test/pre (automates integration and promotion) | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
 
 5. Save the file and quickly verify the final content.
 
@@ -150,7 +151,8 @@ This section uses the simpler single-project layout from `config.example.json`. 
    cat ./config.json
    ```
 
-#### Option 2: Write `config.json` From The Command Line
+<details>
+<summary>Option 2: Write config.json From The Command Line</summary>
 
 1. If you prefer staying in the terminal, write the file directly instead of opening an editor.
 
@@ -222,6 +224,8 @@ This section uses the simpler single-project layout from `config.example.json`. 
    cat ./config.json
    ```
 
+</details>
+
 #### Happy Path Example
 
 Once the steps above are done, the quickest end-to-end test is to ask the assistant to deploy to `dev`:
@@ -242,17 +246,7 @@ On a successful run, the skill should do three things in order:
 2. Push the target deploy branch to the remote repository
 3. Trigger the Jenkins job for that environment
 
-If the script path is available, the terminal output should look similar to this:
-
-```text
-Applying environment overrides for: dev
-Trigger Jenkins build: http://your-jenkins-server:8080 / job=your-job-name / BRANCH=dev / user=your-jenkins-username
-Triggered buildWithParameters successfully.
-```
-
-In Jenkins, you should then see a new queued or running build for the configured job. That is the simplest happy path check that the setup is working.
-
-If you installed the skill as text instructions only, the wording above still applies, but the assistant also needs access to a local copy of `trigger_jenkins_build.ps1` or `trigger_jenkins_build.py`. Otherwise, follow the Jenkins Web UI flow described in `SKILL.md`.
+You should then see a new queued or running build for the configured job in Jenkins. This is the most direct way to verify the success of the happy path.
 
 ### Project Structure
 
@@ -280,10 +274,10 @@ This skill works best when each environment has a clear role.
 
 | Environment | Role | Receives merges from |
 |-------------|------|----------------------|
-| `dev` | Integration | your working branch, for example `feature/login` |
-| `test` | Promotion | the branch configured for `dev` |
-| `pre` | Promotion | the branch configured for `test` |
-| `gray` | Production-like | manual only by default |
+| `dev` | **Dev (Internal)** | your working branch (e.g., `feature/login`) |
+| `test` | **Test (QA)** | the branch configured for `dev` |
+| `pre` | **Pre-release (Staging)** | the branch configured for `test` |
+| `gray` | **Gray (Alpha)** | manual only by default |
 
 #### Promotion Flow
 
@@ -295,9 +289,9 @@ feature/login ──► dev ──► test ──► pre ──► (gray: manual
   (if needed)   (ff-only)  (ff-only)
 ```
 
-- **Deploy to `dev`**: merges your working branch into the branch configured for `dev`.
-- **Deploy to `test`**: promotes the branch configured for `dev` into the branch configured for `test`.
-- **Deploy to `pre`**: promotes the branch configured for `test` into the branch configured for `pre`.
+- **Deploy to `dev`**: **Integrate** (Merge) your feature branch into the Dev environment.
+- **Deploy to `test`**: **Sync** (Promote) the Dev stage code to the Test environment for verification.
+- **Deploy to `pre`**: **Push** (Promote) the verified Test code to the Pre-release environment.
 
 > ⚠️ By default, `test` and `pre` are promotion steps. They do not receive a working branch directly.
 
@@ -447,11 +441,11 @@ A Git merge conflict will interrupt the flow. If a conflict occurs:
 - If your repository protects `dev`, `test`, or `pre`, the push may fail even when the local merge succeeded.
 - In that case, switch to your team's pull request flow or relax branch protection for the deployment branch.
 
-#### `--ff-only` Promotion Failed
+#### `--ff-only` Sync Failed
 
-- This usually means the upstream branch moved forward and the promotion is no longer a fast-forward.
+- This usually means the upstream branch moved forward and the sync is no longer a fast-forward.
 - Sync the upstream branch first, then rerun the skill.
-- A common recovery flow for `dev -> test` is:
+- A common recovery flow for `dev -> test` sync is:
 
 ```bash
 git fetch origin
@@ -600,7 +594,7 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
    | `defaultEnvironment` | 没有明确指定环境时默认使用的环境 | `dev` |
    | `branchParamName` | Jenkins 中分支参数名 | `BRANCH` |
    | `environments` | `dev`、`test`、`pre` 等环境块；每个环境都可以有自己的 Jenkins 地址、Job、分支和 `credentialTarget` | 参考 `config.example.json` |
-   | `gitFlow` | 可选的发布流程规则，例如自动提交和串联发布 | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
+   | `gitFlow` | 可选的发布流程规则：<br>• `autoCommitBeforeDeploy`: 部署前自动提交工作区修改<br>• `allowCascadePromote`: 允许从工作分支一键“直发” test/pre（自动完成集成与晋级） | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
 
 5. 保存文件后，使用下面的命令快速确认最终配置内容。
 
@@ -687,6 +681,8 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
    cat ./config.json
    ```
 
+</details>
+
 #### 端到端示例
 
 前面的步骤都完成后，最简单的端到端验证方式，就是直接在聊天框里对 AI 说：
@@ -707,17 +703,7 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
 2. 把目标发布分支推到远端仓库
 3. 触发对应环境的 Jenkins Job
 
-如果助手可以直接访问本地脚本，终端输出通常会类似这样：
-
-```text
-Applying environment overrides for: dev
-Trigger Jenkins build: http://your-jenkins-server:8080 / job=your-job-name / BRANCH=dev / user=your-jenkins-username
-Triggered buildWithParameters successfully.
-```
-
 随后你应该能在 Jenkins 里看到对应 Job 新出现一条排队中或运行中的构建记录。这就是最直接的 happy path 检查方式。
-
-如果你现在用的是纯文本安装方式，上面的说法仍然可以照用，但前提是助手还能访问本地的 `trigger_jenkins_build.ps1` 或 `trigger_jenkins_build.py`。如果拿不到本地脚本，就请改走 `SKILL.md` 里写的 Jenkins Web UI 流程。
 
 ### 项目结构
 
@@ -745,10 +731,10 @@ jenkins-deploy-skill/
 
 | 环境 | 角色 | 默认接收来源 |
 |------|------|--------------|
-| `dev` | 集成环境 | 你的工作分支，例如 `feature/login` |
-| `test` | 晋级环境 | `dev` 对应的分支 |
-| `pre` | 晋级环境 | `test` 对应的分支 |
-| `gray` | 近生产环境 | 默认手动处理 |
+| `dev` | **内网开发环境** (Dev) | 你的工作分支 (如 `feature/login`) |
+| `test` | **测试环境** (Test/QA) | `dev` 对应的分支 |
+| `pre` | **预发布环境** (Pre-release) | `test` 对应的分支 |
+| `gray` | **灰度环境** (Alpha/Gray) | 默认手动处理 |
 
 #### 默认晋级路径
 
@@ -760,9 +746,9 @@ feature/login ──► dev ──► test ──► pre ──► (gray: manual
   (if needed)   (ff-only)  (ff-only)
 ```
 
-- **发布 `dev`**：把你的工作分支集成到 `dev` 对应的分支。
-- **发布 `test`**：把 `dev` 对应的分支晋级到 `test` 对应的分支。
-- **发布 `pre`**：把 `test` 对应的分支晋级到 `pre` 对应的分支。
+- **发布 `dev`**：将功能分支代码**集成**（Merge）到开发环境。
+- **发布 `test`**：将开发环境的成果**同步**（Promote）到测试环境进行验证。
+- **发布 `pre`**：将测试通过的版本**推送**到预发布环境准备上线。
 
 > ⚠️ 默认情况下，`test` 和 `pre` 都是“晋级”步骤，不直接接收个人工作分支。
 
@@ -912,11 +898,11 @@ python3 ./scripts/trigger_jenkins_build.py --project demo-admin --target-env tes
 - 如果仓库对 `dev`、`test`、`pre` 等分支开启了保护规则，即使本地合并成功，push 也可能被拒绝。
 - 这时就需要切回你们团队自己的 PR 流程，或者调整对应发布分支的保护策略。
 
-#### `--ff-only` 晋级失败怎么办
+#### `--ff-only` 同步失败怎么办
 
-- 这通常表示上游分支已经前进了，当前这次晋级不再是 fast-forward。
+- 这通常表示上游分支已经前进了，当前这次同步不再是 fast-forward。
 - 先把上游分支同步到最新，再重新执行 skill。
-- 比如常见的 `dev -> test` 晋级，可以先执行：
+- 比如常见的 `dev -> test` 同步，可以先执行：
 
 ```bash
 git fetch origin
