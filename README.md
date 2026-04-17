@@ -293,15 +293,16 @@ feature/login ──► dev ──► test ──► pre ──► (gray: manual
 - **Deploy to `test`**: **Sync** (Promote) the Dev stage code to the Test environment for verification.
 - **Deploy to `pre`**: **Push** (Promote) the verified Test code to the Pre-release environment.
 
-> ⚠️ By default, `test` and `pre` are promotion steps. They do not receive a working branch directly.
+> ⚠️ By default, `test` and `pre` are **Sync (Promotion)** stages. They do not receive a working branch directly.
 
 #### Branch Mapping
 
-The Git target branch comes from the environment's `branch` setting in `config.json`.
+The target Git branch is determined by your `config.json` structure:
 
-- In the recommended single-project layout, use `defaultEnvironment: "dev"` and write `dev`, `test`, and `pre` explicitly under `environments`.
-- In the multi-project layout, use `projects.<name>.environments.<env>.branch`.
-- Root-level fields such as `branch`, `jenkinsBaseUrl`, and `jobName` are still supported in the legacy single-project format for backward compatibility.
+- **Single-project**: Define the `branch` for each environment under the `environments` block.
+- **Multi-project**: Map branches via the `projects.<name>.environments.<env>.branch` path.
+
+The system automatically selects the correct target branch based on the requested environment.
 
 #### Uncommitted Changes
 
@@ -320,15 +321,28 @@ Internally, the skill uses a temporary local branch to protect your long-lived b
 
 ### Advanced: Multi-Project And Multi-Environment
 
-If one skill needs to cover more than one project, start from `config.multi-project.example.json` instead of `config.example.json`.
+When a single Skill needs to maintain multiple independent projects, we recommend using the multi-project configuration scheme.
 
-The multi-project layout supports `defaultProject`, `projects.<name>.defaults`, and `projects.<name>.environments.<env>`, so each project and each environment can use its own Jenkins URL, job name, branch, and `credentialTarget`.
+#### Configuration Steps
 
-For the single-project layout, the same rule already applies inside `environments`: `dev`, `test`, and `pre` can each point to different Jenkins nodes and use different `credentialTarget` values.
+1. **Initialize Template**: Save `config.multi-project.example.json` as `config.json`.
 
-#### If You Use It In Chat
+   **Windows (PowerShell):**
+   ```powershell
+   Copy-Item config.multi-project.example.json config.json
+   ```
+   
+   **macOS / Linux (Bash):**
+   ```bash
+   cp config.multi-project.example.json config.json
+   ```
 
-For most users, this is all you need:
+2. **Define Projects & Environments**: Declare each project and its specific `environments` within the `projects` object. Each project/environment can use its own Jenkins URL, job name, branch, and `credentialTarget`.
+3. **Set Defaults**: Use `defaultProject` to specify a fallback and define shared Jenkins URLs or credential IDs in `projects.<name>.defaults`.
+
+#### Usage Examples
+
+Once configured, the AI assistant will automatically recognize different projects. You can say:
 
 ```text
 deploy demo-admin to test
@@ -750,15 +764,16 @@ feature/login ──► dev ──► test ──► pre ──► (gray: manual
 - **发布 `test`**：将开发环境的成果**同步**（Promote）到测试环境进行验证。
 - **发布 `pre`**：将测试通过的版本**推送**到预发布环境准备上线。
 
-> ⚠️ 默认情况下，`test` 和 `pre` 都是“晋级”步骤，不直接接收个人工作分支。
+> ⚠️ 默认情况下，`test` 和 `pre` 均为**同步（Sync）**阶段，原则上不直接接收个人工作分支。
 
-#### 分支映射规则
+#### 分支映射逻辑
 
-Git 目标分支直接来自环境自己的 `branch` 配置。
+Git 目标分支的选取规则取决于 `config.json` 的组织结构：
 
-- 在推荐的单项目格式里，使用 `defaultEnvironment: "dev"`，并把 `dev`、`test`、`pre` 显式写在 `environments` 下面。
-- 在多项目格式里，使用 `projects.<name>.environments.<env>.branch`。
-- 为了兼容老版本，单项目格式仍然支持顶层的 `branch`、`jenkinsBaseUrl`、`jobName` 等字段。
+- **单项目模式**：在 `environments` 下为各个环境显式配置 `branch` 字段。
+- **多项目模式**：通过 `projects.<name>.environments.<env>.branch` 路径进行定义。
+
+系统将根据当前目标环境，自动选取对应的分支进行代码同步与发布。
 
 #### 未提交修改怎么处理
 
@@ -777,27 +792,33 @@ Git 目标分支直接来自环境自己的 `branch` 配置。
 
 ### 高级用法：多项目与多环境部署
 
-如果一个 skill 需要同时覆盖多个项目，请不要再从 `config.example.json` 起步，而是直接使用 `config.multi-project.example.json`。
+当单个 Skill 需要同时维护多个独立项目时，建议采用多项目配置方案。
 
-这个格式支持 `defaultProject`、`projects.<name>.defaults` 和 `projects.<name>.environments.<env>`，所以每个项目、每个环境都可以有自己独立的 Jenkins 地址、Job、分支和 `credentialTarget`。
+#### 配置步骤
 
-对于单项目格式，这个能力其实也已经存在于 `environments` 里：`dev`、`test`、`pre` 完全可以各自使用不同的 Jenkins 地址和 `credentialTarget`，不需要等到多项目模式才能做到。
+1. **启用模板**：将 `config.multi-project.example.json` 另存为 `config.json`。
 
-#### 如果你是在聊天框里直接使用
+   **Windows (PowerShell):**
+   ```powershell
+   Copy-Item config.multi-project.example.json config.json
+   ```
+   
+   **macOS / Linux (Bash):**
+   ```bash
+   cp config.multi-project.example.json config.json
+   ```
 
-对大多数用户来说，只需要这样说就够了：
+2. **定义项目与环境**：在 `projects` 对象下定义各个项目及其独有的 `environments`。每个项目、每个环境都可以有自己独立的 Jenkins 地址、Job、分支和 `credentialTarget`。
+3. **设置默认值**：利用 `defaultProject` 指定缺省项目，并在 `projects.<name>.defaults` 中定义各环境通用的 Jenkins 地址或凭据标识。
 
-```text
-帮我发 demo-admin 的 test 环境
-```
+#### 调用示例
 
-如果你是单项目配置，也可以直接说：
+配置完成后，AI 助手将具备跨项目识别能力。您可以直接要求：
 
-```text
-帮我发 test 环境
-```
+- “帮我发 demo-admin 的 test 环境”
+- “deploy demo-service to pre”
 
-skill 会根据 `config.json` 自动决定项目、环境、分支、Jenkins 地址和凭据。
+系统将根据项目名称自动定位至正确的项目配置与环境分支。
 
 <details>
 <summary>如果你是手动执行脚本</summary>
@@ -920,7 +941,7 @@ git pull --ff-only
 
 | Field | Value |
 |-------|-------|
-| Version | `1.1.0` |
+| Version | `1.2.0` |
 | Author | `maiml` |
 | Repository | [maimingliang/jenkins-deploy-skill](https://github.com/maimingliang/jenkins-deploy-skill) |
 | Tags | `jenkins`, `deploy`, `ci-cd`, `git`, `devops` |

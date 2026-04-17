@@ -9,6 +9,14 @@ description: >
   "push 到 test 环境", "deploy pre", "发布 demo-admin 的 test 环境", or "触发 Jenkins 构建".
 ---
 
+## Project Metadata
+
+| Field | Value |
+| Version | `1.2.0` |
+| Author | `maiml` |
+| Repository | [maimingliang/jenkins-deploy-skill](https://github.com/maimingliang/jenkins-deploy-skill) |
+| Tags | `jenkins`, `deploy`, `ci-cd`, `git`, `devops` |
+
 # Jenkins Deploy Skill
 
 ## Goal
