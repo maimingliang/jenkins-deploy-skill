@@ -614,7 +614,8 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
    cat ./config.json
    ```
 
-#### 方式二：命令行生成 `config.json`
+<details>
+<summary>方式二：命令行生成 config.json</summary>
 
 1. 如果你更习惯待在终端里，也可以直接把配置文件写出来，而不是打开编辑器逐个修改。
 
