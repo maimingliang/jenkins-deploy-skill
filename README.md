@@ -531,11 +531,12 @@ python3 --version
 
 ### 安装指南（适配各大 AI 工具）
 
-#### 聊天安装
+#### 1. 自动安装 (推荐)
 
-如果你的 AI 助手支持直接通过仓库地址安装 skill，你只需要在聊天框里这样说：
+如果您的 AI 助手（如 Codex、Claude Code）支持直接通过仓库地址安装 Skill，只需在对话框中发送以下安装指令：
 
-把下面这一整行完整复制到 AI 助手的聊天输入框里，记得连结尾的 `skill` 一起带上：
+> [!TIP]
+> 请完整复制下方指令（确保包含末尾的 `skill` 关键字）并直接发送：
 
 ```text
 https://github.com/maimingliang/jenkins-deploy-skill skill
@@ -572,7 +573,7 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
 
 如果你现在只想先接通一个 Jenkins 项目，建议从这里开始。所有命令都请在 `jenkins-deploy-skill` 根目录下执行。
 
-这一节使用更轻量的单项目配置，也就是 `config.example.json`。推荐写法是把 `dev`、`test`、`pre` 都明确放进 `environments`，用户一眼就能看明白。如果你希望一个 skill 同时管理多个项目，可以直接看后面的“高级用法：多项目与多环境部署”。
+本节介绍最为常用的单项目轻型配置（参考 `config.example.json`）。建议在 `environments` 中显式定义 `dev`、`test`、`pre` 等环境块，以便于直观维护与切换。如需通过单个 Skill 同时管理多个独立项目，请参阅下文的 [高级用法：多项目与多环境部署](#高级用法多项目与多环境部署)。
 
 #### 方式一：手动修改
 
