@@ -227,7 +227,7 @@ python3 ./scripts/trigger_jenkins_build.py -TargetEnv test
 
 #### Dealing with Merge Conflicts
 
-As an automated AI skill, a Git merge conflict should interrupt the flow. If a conflict occurs:
+A Git merge conflict will interrupt the flow. If a conflict occurs:
 
 1. Run `git merge --abort` or `git rebase --abort`.
 2. Resolve the conflict manually in your IDE.
@@ -463,7 +463,7 @@ python3 ./scripts/trigger_jenkins_build.py -TargetEnv test
 
 #### 如何处理合并冲突
 
-作为自动化 AI Skill，一旦遇到 Git 合并冲突，流程就应该暂停。推荐处理方式：
+一旦遇到 Git 合并冲突，流程就会暂停。推荐处理方式：
 
 1. 执行 `git merge --abort` 或 `git rebase --abort`。
 2. 在 IDE 中手动解决冲突。
