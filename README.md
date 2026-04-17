@@ -2,15 +2,6 @@
 
 [English](#english) | [中文](#中文)
 
-## Project Metadata
-
-| Field | Value |
-|-------|-------|
-| Version | `1.0.0` |
-| Author | `maiml` |
-| Repository | [maimingliang/jenkins-deploy-skill](https://github.com/maimingliang/jenkins-deploy-skill) |
-| Tags | `jenkins`, `deploy`, `ci-cd`, `git`, `devops` |
-
 ---
 
 ## English
@@ -19,47 +10,13 @@ An AI Agent skill/prompt that automates the "merge -> push -> trigger Jenkins bu
 
 ### Features
 
-- 🔀 **Git flow** — safely merges and pushes to the deploy branch, with force-push forbidden
+- 🔀 **Git flow** — follows a clear branch integration and promotion path, with force-push forbidden
 - 🚀 **Jenkins trigger** — fires a parameterised build via Jenkins REST API
 - 🔐 **Secure credentials** — supports Windows Credential Manager, macOS Keychain, and environment-variable fallback
 - 📦 **Auto-install (Windows)** — automatically installs the `CredentialManager` PowerShell module if missing
 - ⚙️ **Configurable** — all values are driven by `config.json` with CLI overrides
-- 🌍 **Multi-environment** — supports an inheritance pattern in `config.json` for environments like `dev`, `test`, and `pre`
+- 🌍 **Multi-project + multi-environment** — one skill can cover multiple Jenkins jobs while remaining compatible with the original single-project config
 - 🛡️ **CSRF-safe** — automatically fetches Jenkins crumb for CSRF protection
-
-### Installation (For AI Assistants)
-
-#### Install By Chat
-
-If your AI assistant supports installing skills directly from a repository URL, you can simply say this in chat:
-
-```text
-https://github.com/maimingliang/jenkins-deploy-skill skill
-```
-
-#### Manual Installation
-
-1. Download or `git clone` this repository to a permanent location on your machine.
-2. Hook `SKILL.md` into your AI assistant in the target project where you actually write code:
-   - **Codex**: place this entire folder into your global skills directory
-     - Windows: `%USERPROFILE%\.codex\skills\`
-     - macOS/Linux: `~/.codex/skills/`
-   - **Cursor / Windsurf**: copy the contents of `SKILL.md` to `.cursorrules`
-     - Windows: `%USERPROFILE%\.cursorrules`
-     - macOS/Linux: `~/.cursorrules`
-   - **Claude Code (CLI)**: place this entire folder into the Claude skills directory
-     - Windows: `%USERPROFILE%\.claude\skills\`
-     - macOS/Linux: `~/.claude/skills/`
-   - **GitHub Copilot**: copy the contents to `.github/copilot-instructions.md`
-     - Windows: `%USERPROFILE%\.github\copilot-instructions.md`
-     - macOS/Linux: `~/.github/copilot-instructions.md`
-   - **Claude Projects / ChatGPT**: upload `SKILL.md` into the knowledge base or custom instructions
-
-Only filesystem-style installations such as Codex or Claude skills directories include
-the `scripts/` folder on disk. Text-only integrations such as `.cursorrules`,
-Copilot instructions, or knowledge-base uploads can still use the prompt guidance,
-but they cannot execute `./scripts/trigger_jenkins_build.*` unless you copy those
-files into a local tools directory yourself.
 
 ### Prerequisites
 
@@ -109,11 +66,52 @@ Before running the script, prepare your Jenkins API Token in a secure way:
   export JENKINS_API_TOKEN="your-api-token"
   ```
 
+### Installation (For AI Assistants)
+
+#### Install By Chat
+
+If your AI assistant supports installing skills directly from a repository URL, you can simply say this in chat:
+
+Copy the full line below, including the trailing `skill` keyword, and send it in your AI assistant's chat:
+
+```text
+https://github.com/maimingliang/jenkins-deploy-skill skill
+```
+
+<details>
+<summary>Manual Installation</summary>
+
+1. Download or `git clone` this repository to a permanent location on your machine.
+2. Connect `SKILL.md` to the assistant you use in the project where you actually write code:
+   - **Codex**: place this entire folder into your global skills directory
+     - Windows: `%USERPROFILE%\.codex\skills\`
+     - macOS/Linux: `~/.codex/skills/`
+   - **Cursor / Windsurf**: copy the contents of `SKILL.md` to `.cursorrules`
+     - Windows: `%USERPROFILE%\.cursorrules`
+     - macOS/Linux: `~/.cursorrules`
+   - **Claude Code (CLI)**: place this entire folder into the Claude skills directory
+     - Windows: `%USERPROFILE%\.claude\skills\`
+     - macOS/Linux: `~/.claude/skills/`
+   - **GitHub Copilot**: copy the contents to `.github/copilot-instructions.md`
+     - Windows: `%USERPROFILE%\.github\copilot-instructions.md`
+     - macOS/Linux: `~/.github/copilot-instructions.md`
+   - **Claude Projects / ChatGPT**: upload `SKILL.md` into the knowledge base or custom instructions
+
+Not sure which install path to use? Start with **Install By Chat** above. If you prefer a manual setup, use the options below:
+
+- If you are not sure which one to choose, start with **Codex** or **Claude Code**. They can use the bundled `scripts/` directly and usually require the least extra setup.
+- **Filesystem-based installs** such as Codex or Claude skills directories are recommended if you want to run the bundled `scripts/` directly.
+- **Text-only installs** such as `.cursorrules`, Copilot instructions, or knowledge-base uploads still preserve the workflow guidance, but they do not automatically include the local `scripts/` folder. If you want script-based triggering in that setup, copy the scripts into a local tools directory first. Otherwise, use the Jenkins Web UI path from `SKILL.md`.
+
+</details>
+
 ### Quick Start
 
-Choose one of the following approaches. Run all commands in the root of the `jenkins-deploy-skill` directory.
+If you are setting up a single Jenkins job, start here. Run all commands in the root of the `jenkins-deploy-skill` directory.
 
-#### Option 1: Configure From The Command Line
+This section uses the simpler single-project layout from `config.example.json`. In the recommended layout, `dev`, `test`, and `pre` are all written explicitly under `environments`, which is easier to read at a glance. If you want one skill to manage multiple projects, jump to [Advanced: Multi-Project And Multi-Environment](#advanced-multi-project-and-multi-environment).
+
+#### Option 1: Configure Manually
 
 1. Generate `config.json` from the template.
 
@@ -127,75 +125,20 @@ Choose one of the following approaches. Run all commands in the root of the `jen
    cp config.example.json config.json
    ```
 
-2. Update the required fields in `config.json` from the terminal.
-
-   **Windows (PowerShell):**
-   ```powershell
-   $config = Get-Content .\config.json -Raw | ConvertFrom-Json
-   $config.jenkinsBaseUrl = "http://your-jenkins-server:8080"
-   $config.jobName = "your-job-name"
-   $config.credentialTarget = "jenkins-api-auth-id"
-   $config.branch = "dev"
-   $config.branchParamName = "BRANCH"
-   $config | ConvertTo-Json -Depth 10 | Set-Content .\config.json
-   ```
-
-   **macOS / Linux (Bash):**
-   ```bash
-   python3 - <<'PY'
-   import json
-   from pathlib import Path
-   path = Path("config.json")
-   config = json.loads(path.read_text(encoding="utf-8"))
-   config["jenkinsBaseUrl"] = "http://your-jenkins-server:8080"
-   config["jobName"] = "your-job-name"
-   config["credentialTarget"] = "jenkins-api-auth-id"
-   config["branch"] = "dev"
-   config["branchParamName"] = "BRANCH"
-   path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-   PY
-   ```
-
-3. Verify that `config.json` exists and contains the expected values.
-
-   **Windows (PowerShell):**
-   ```powershell
-   Get-Content .\config.json
-   ```
-
-   **macOS / Linux (Bash):**
-   ```bash
-   cat ./config.json
-   ```
-
-#### Option 2: Configure Manually
-
-1. Generate `config.json` from `config.example.json`.
-
-   **Windows (PowerShell):**
-   ```powershell
-   Copy-Item config.example.json config.json
-   ```
-
-   **macOS / Linux (Bash):**
-   ```bash
-   cp config.example.json config.json
-   ```
-
 2. Open `config.json` in the root of the `jenkins-deploy-skill` directory with your preferred editor, such as VS Code or Notepad.
 
-3. Replace the placeholder values with your real Jenkins configuration. The key fields are:
+3. Replace the placeholder values with your real Jenkins configuration. The template itself stays as plain JSON so it works cleanly with editors, validators, and automation tools.
+
+4. The key fields are:
 
    | Field | Description | Typical value |
    |-------|-------------|---------------|
-   | `jenkinsBaseUrl` | Jenkins server URL | `http://your-jenkins-server:8080` |
-   | `jobName` | Jenkins job name to trigger | `your-job-name` |
-   | `credentialTarget` | Credential target name used by Windows Credential Manager or macOS Keychain | `jenkins-api-auth-id` |
-   | `branch` | Default branch to build | `dev` |
+   | `defaultEnvironment` | Default environment when no environment is specified | `dev` |
    | `branchParamName` | Jenkins parameter name used for the branch | `BRANCH` |
-   | `environments` | Optional per-environment overrides such as `test` and `pre` | see `config.example.json` |
+   | `environments` | Environment blocks such as `dev`, `test`, and `pre`, each with its own Jenkins URL, job name, branch, and `credentialTarget` | see `config.example.json` |
+   | `gitFlow` | Optional deployment workflow rules such as auto-commit and chained release | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
 
-4. Save the file and quickly verify the final content.
+5. Save the file and quickly verify the final content.
 
    **Windows (PowerShell):**
    ```powershell
@@ -206,6 +149,110 @@ Choose one of the following approaches. Run all commands in the root of the `jen
    ```bash
    cat ./config.json
    ```
+
+#### Option 2: Write `config.json` From The Command Line
+
+1. If you prefer staying in the terminal, write the file directly instead of opening an editor.
+
+   **Windows (PowerShell):**
+   ```powershell
+   @'
+   {
+     "gitFlow": {
+       "autoCommitBeforeDeploy": true,
+       "allowCascadePromote": true
+     },
+     "defaultEnvironment": "dev",
+     "branchParamName": "BRANCH",
+     "environments": {
+       "dev": {
+         "jenkinsBaseUrl": "http://your-jenkins-server:8080",
+         "jobName": "your-job-name",
+         "credentialTarget": "jenkins-api-auth-id",
+         "branch": "dev"
+       },
+       "test": {
+         "jenkinsBaseUrl": "https://your-test-jenkins-server:8080",
+         "jobName": "your-test-job-name",
+         "credentialTarget": "jenkins-test-auth-id",
+         "branch": "test"
+       }
+     }
+   }
+   '@ | Set-Content .\config.json -Encoding UTF8
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cat > ./config.json <<'EOF'
+   {
+     "gitFlow": {
+       "autoCommitBeforeDeploy": true,
+       "allowCascadePromote": true
+     },
+     "defaultEnvironment": "dev",
+     "branchParamName": "BRANCH",
+     "environments": {
+       "dev": {
+         "jenkinsBaseUrl": "http://your-jenkins-server:8080",
+         "jobName": "your-job-name",
+         "credentialTarget": "jenkins-api-auth-id",
+         "branch": "dev"
+       },
+       "test": {
+         "jenkinsBaseUrl": "https://your-test-jenkins-server:8080",
+         "jobName": "your-test-job-name",
+         "credentialTarget": "jenkins-test-auth-id",
+         "branch": "test"
+       }
+     }
+   }
+   EOF
+   ```
+
+2. Verify that `config.json` exists and contains the expected values.
+
+   **Windows (PowerShell):**
+   ```powershell
+   Get-Content .\config.json
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cat ./config.json
+   ```
+
+#### Happy Path Example
+
+Once the steps above are done, the quickest end-to-end test is to ask the assistant to deploy to `dev`:
+
+```text
+deploy to dev
+```
+
+If you use multiple environments, you can also say:
+
+```text
+deploy to test
+```
+
+On a successful run, the skill should do three things in order:
+
+1. Integrate or promote the correct Git branch for the target environment
+2. Push the target deploy branch to the remote repository
+3. Trigger the Jenkins job for that environment
+
+If the script path is available, the terminal output should look similar to this:
+
+```text
+Applying environment overrides for: dev
+Trigger Jenkins build: http://your-jenkins-server:8080 / job=your-job-name / BRANCH=dev / user=your-jenkins-username
+Triggered buildWithParameters successfully.
+```
+
+In Jenkins, you should then see a new queued or running build for the configured job. That is the simplest happy path check that the setup is working.
+
+If you installed the skill as text instructions only, the wording above still applies, but the assistant also needs access to a local copy of `trigger_jenkins_build.ps1` or `trigger_jenkins_build.py`. Otherwise, follow the Jenkins Web UI flow described in `SKILL.md`.
 
 ### Project Structure
 
@@ -215,6 +262,7 @@ jenkins-deploy-skill/
 |-- README.md
 |-- LICENSE
 |-- config.example.json
+|-- config.multi-project.example.json
 |-- .gitignore
 |-- CONTRIBUTING.md
 `-- scripts/
@@ -222,11 +270,116 @@ jenkins-deploy-skill/
     `-- trigger_jenkins_build.py    # macOS/Linux trigger script
 ```
 
-### Advanced: Multi-Environment
+### Recommended Git Workflow
 
-If you map different environments to different Jenkins nodes, for example internal Jenkins for `dev` and cloud Jenkins for `test`, you only need to configure the `environments` block in `config.json` and follow the override pattern shown in `config.example.json`.
+This skill works best when each environment has a clear role.
 
-At runtime, you can simply tell the AI something like "deploy to test". The AI will automatically append the environment flag in the background and switch to the correct internal or cloud environment.
+> Note: `dev`, `test`, `pre`, and `gray` are common examples, not fixed standards. Different teams may use different environment names. The actual behavior of this skill is driven by the environment configuration in `config.json`, especially each environment's `branch`, Jenkins URL, job, and credentials.
+
+#### Environment Roles
+
+| Environment | Role | Receives merges from |
+|-------------|------|----------------------|
+| `dev` | Integration | your working branch, for example `feature/login` |
+| `test` | Promotion | the branch configured for `dev` |
+| `pre` | Promotion | the branch configured for `test` |
+| `gray` | Production-like | manual only by default |
+
+#### Promotion Flow
+
+```text
+feature/login ──► dev ──► test ──► pre ──► (gray: manual)
+     ▲               │         │
+     │               │         │
+  auto-commit     promote   promote
+  (if needed)   (ff-only)  (ff-only)
+```
+
+- **Deploy to `dev`**: merges your working branch into the branch configured for `dev`.
+- **Deploy to `test`**: promotes the branch configured for `dev` into the branch configured for `test`.
+- **Deploy to `pre`**: promotes the branch configured for `test` into the branch configured for `pre`.
+
+> ⚠️ By default, `test` and `pre` are promotion steps. They do not receive a working branch directly.
+
+#### Branch Mapping
+
+The Git target branch comes from the environment's `branch` setting in `config.json`.
+
+- In the recommended single-project layout, use `defaultEnvironment: "dev"` and write `dev`, `test`, and `pre` explicitly under `environments`.
+- In the multi-project layout, use `projects.<name>.environments.<env>.branch`.
+- Root-level fields such as `branch`, `jenkinsBaseUrl`, and `jobName` are still supported in the legacy single-project format for backward compatibility.
+
+#### Uncommitted Changes
+
+If your working branch still has uncommitted changes, the skill can create one controlled auto-commit on that working branch before deployment. It will not commit directly on `dev`, `test`, `pre`, or any long-lived environment branch.
+
+Internally, the skill uses a temporary local branch to protect your long-lived branches and avoid rewriting your own branch history.
+
+#### `gitFlow` Configuration
+
+| Key | Default | Effect |
+|-----|---------|--------|
+| `autoCommitBeforeDeploy` | `true` | Allows one controlled auto-commit on your working branch before deploy |
+| `allowCascadePromote` | `true` | Allows chained promotion. For example, saying "deploy to test" from `feature/login` can first integrate into `dev`, then promote `dev` to `test` |
+
+
+
+### Advanced: Multi-Project And Multi-Environment
+
+If one skill needs to cover more than one project, start from `config.multi-project.example.json` instead of `config.example.json`.
+
+The multi-project layout supports `defaultProject`, `projects.<name>.defaults`, and `projects.<name>.environments.<env>`, so each project and each environment can use its own Jenkins URL, job name, branch, and `credentialTarget`.
+
+For the single-project layout, the same rule already applies inside `environments`: `dev`, `test`, and `pre` can each point to different Jenkins nodes and use different `credentialTarget` values.
+
+#### If You Use It In Chat
+
+For most users, this is all you need:
+
+```text
+deploy demo-admin to test
+```
+
+Or for a single-project setup:
+
+```text
+deploy to test
+```
+
+The skill will decide the target project, environment, branch, Jenkins URL, and credentials from `config.json`.
+
+<details>
+<summary>If You Run The Scripts Manually</summary>
+
+The options below are only for users who run `trigger_jenkins_build.ps1` or `trigger_jenkins_build.py` directly.
+
+##### Project Selection
+
+| Case | Result |
+|------|--------|
+| You pass `--project` or `-Project` | That project is used |
+| You do not pass a project | The script uses `defaultProject` |
+| There is only one project in the file | The script can infer it |
+| There are multiple projects and no `defaultProject` | Specify the project explicitly |
+
+##### Config File Selection
+
+| Case | Result |
+|------|--------|
+| You pass `--config-file` or `-ConfigFile` | That file is used |
+| You do not pass a config file | The script reads `config.json` only |
+| `config.multi-project.json` exists next to `config.json` | It is not picked automatically |
+| You want to use `config.multi-project.example.json` | Copy or rename it to `config.json`, or pass it explicitly with `--config-file` |
+
+##### Environment Selection
+
+| Case | Result |
+|------|--------|
+| You pass `--target-env` or `-TargetEnv` | That environment is used |
+| You do not pass an environment and `defaultEnvironment` exists | `defaultEnvironment` is used |
+| No `defaultEnvironment`, but `dev` exists | `dev` is used by default |
+
+##### Manual Script Examples
 
 **Windows**
 ```powershell
@@ -238,9 +391,23 @@ powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 -Ta
 python3 ./scripts/trigger_jenkins_build.py --target-env test
 ```
 
+**Windows (PowerShell)**
+```powershell
+Copy-Item config.multi-project.example.json config.json
+powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 -Project demo-admin -TargetEnv test
+```
+
+**macOS / Linux**
+```bash
+cp config.multi-project.example.json config.json
+python3 ./scripts/trigger_jenkins_build.py --project demo-admin --target-env test
+```
+
+</details>
+
 ### Troubleshooting
 
-#### Dealing with Merge Conflicts
+#### Merge Conflicts
 
 A Git merge conflict will interrupt the flow. If a conflict occurs:
 
@@ -248,6 +415,51 @@ A Git merge conflict will interrupt the flow. If a conflict occurs:
 2. Resolve the conflict manually in your IDE.
 3. Commit the resolved changes locally.
 4. Invoke the skill again to continue the push and Jenkins trigger flow.
+
+#### Push Succeeded But Jenkins Trigger Failed
+
+- Your code may already be on the target branch even if Jenkins did not start successfully.
+- In that case, do not roll back Git by default.
+- First fix the Jenkins-side problem, such as credentials, crumb access, or network reachability.
+- Then rerun the skill or trigger the same Jenkins job manually.
+
+#### Jenkins Authentication Failed
+
+- Confirm that `credentialTarget` matches the credential saved in Windows Credential Manager or macOS Keychain.
+- Make sure the Jenkins username and API token are still valid.
+- If you are using environment variables, confirm `JENKINS_USERNAME` and `JENKINS_API_TOKEN` are exported in the same shell session.
+
+#### CSRF Crumb Errors
+
+- Make sure the Jenkins base URL is correct and reachable from your machine.
+- Confirm that the Jenkins user behind the API token has permission to access the crumb issuer endpoint.
+- If your Jenkins is behind a reverse proxy, verify that the proxy is not stripping required headers.
+
+#### `config.json` Not Found Or Wrong File Used
+
+- By default, the scripts read `config.json` only.
+- If you want a different file, pass `--config-file` or `-ConfigFile` explicitly.
+- `config.multi-project.example.json` is only a template until you copy or point to it directly.
+
+#### Push Was Rejected By Branch Protection
+
+- This skill assumes the target deploy branch allows direct push.
+- If your repository protects `dev`, `test`, or `pre`, the push may fail even when the local merge succeeded.
+- In that case, switch to your team's pull request flow or relax branch protection for the deployment branch.
+
+#### `--ff-only` Promotion Failed
+
+- This usually means the upstream branch moved forward and the promotion is no longer a fast-forward.
+- Sync the upstream branch first, then rerun the skill.
+- A common recovery flow for `dev -> test` is:
+
+```bash
+git fetch origin
+git checkout dev
+git pull --ff-only
+```
+
+- If the failure happened while integrating your working branch into `dev`, first sync your working branch with the latest `origin/dev` according to your team policy, resolve any conflicts, and then rerun the skill.
 
 ### License
 
@@ -261,46 +473,13 @@ A Git merge conflict will interrupt the flow. If a conflict occurs:
 
 ### 特性
 
-- 🔀 **Git 流程** — 安全地合并并推送到部署分支，严格禁止 force push
+- 🔀 **Git 流程** — 按清晰的分支集成和环境晋级路径发布，严格禁止 force push
 - 🚀 **Jenkins 触发** — 通过 REST API 触发参数化构建
 - 🔐 **安全凭据** — 支持 Windows Credential Manager、macOS Keychain 和环境变量兜底
 - 📦 **自动安装 (Windows)** — 缺少 `CredentialManager` PowerShell 模块时会自动安装
 - ⚙️ **可配置** — 所有参数由 `config.json` 驱动，并支持命令行覆盖
-- 🌍 **多环境支持** — 支持在 `config.json` 中为 `dev`、`test`、`pre` 等环境做继承覆盖
+- 🌍 **多项目 + 多环境支持** — 一个 skill 可以覆盖多个 Jenkins 项目，同时保持对原有单项目配置的兼容
 - 🛡️ **CSRF 安全** — 自动获取 Jenkins crumb
-
-### 安装指南（适配各大 AI 工具）
-
-#### 聊天安装
-
-如果你的 AI 助手支持直接通过仓库地址安装 skill，你只需要在聊天框里这样说：
-
-```text
-https://github.com/maimingliang/jenkins-deploy-skill skill
-```
-
-#### 手动安装
-
-1. 将本仓库下载或 `git clone` 到机器上的固定目录。
-2. 在你实际开发的目标项目里，把 `SKILL.md` 接入你的 AI 助手：
-   - **Codex**：将整个目录放入全局技能目录
-     - Windows: `%USERPROFILE%\.codex\skills\`
-     - macOS/Linux: `~/.codex/skills/`
-   - **Cursor / Windsurf**：复制 `SKILL.md` 内容到 `.cursorrules`
-     - Windows: `%USERPROFILE%\.cursorrules`
-     - macOS/Linux: `~/.cursorrules`
-   - **Claude Code (CLI)**：将整个目录放入 Claude 技能目录
-     - Windows: `%USERPROFILE%\.claude\skills\`
-     - macOS/Linux: `~/.claude/skills/`
-   - **GitHub Copilot**：复制内容到 `.github/copilot-instructions.md`
-     - Windows: `%USERPROFILE%\.github\copilot-instructions.md`
-     - macOS/Linux: `~/.github/copilot-instructions.md`
-   - **Claude Projects / ChatGPT**：直接上传 `SKILL.md` 到知识库，或填入自定义指令
-
-只有像 Codex 或 Claude 技能目录这样的文件系统安装方式，才会把 `scripts/`
-目录一并放到本地磁盘。像 `.cursorrules`、Copilot 指令文件、知识库上传这类纯文
-本接入方式，依然可以复用提示词，但默认并不能直接执行
-`./scripts/trigger_jenkins_build.*`，除非您另外把脚本复制到本地工具目录。
 
 ### 环境检查
 
@@ -350,11 +529,52 @@ python3 --version
   export JENKINS_API_TOKEN="your-api-token"
   ```
 
+### 安装指南（适配各大 AI 工具）
+
+#### 聊天安装
+
+如果你的 AI 助手支持直接通过仓库地址安装 skill，你只需要在聊天框里这样说：
+
+把下面这一整行完整复制到 AI 助手的聊天输入框里，记得连结尾的 `skill` 一起带上：
+
+```text
+https://github.com/maimingliang/jenkins-deploy-skill skill
+```
+
+<details>
+<summary>手动安装</summary>
+
+1. 将本仓库下载或 `git clone` 到机器上的固定目录。
+2. 在你实际开发的目标项目里，把 `SKILL.md` 接入你正在使用的助手：
+   - **Codex**：将整个目录放入全局技能目录
+     - Windows: `%USERPROFILE%\.codex\skills\`
+     - macOS/Linux: `~/.codex/skills/`
+   - **Cursor / Windsurf**：复制 `SKILL.md` 内容到 `.cursorrules`
+     - Windows: `%USERPROFILE%\.cursorrules`
+     - macOS/Linux: `~/.cursorrules`
+   - **Claude Code (CLI)**：将整个目录放入 Claude 技能目录
+     - Windows: `%USERPROFILE%\.claude\skills\`
+     - macOS/Linux: `~/.claude/skills/`
+   - **GitHub Copilot**：复制内容到 `.github/copilot-instructions.md`
+     - Windows: `%USERPROFILE%\.github\copilot-instructions.md`
+     - macOS/Linux: `~/.github/copilot-instructions.md`
+   - **Claude Projects / ChatGPT**：直接上传 `SKILL.md` 到知识库，或填入自定义指令
+
+如果你拿不准该选哪种方式，优先用上面的“聊天安装”。如果你更想自己手动接入，再看下面这些方式：
+
+- 如果你还拿不准怎么选，优先从 **Codex** 或 **Claude Code** 开始。这两种方式通常可以直接使用仓库自带的 `scripts/`，额外准备工作最少。
+- **文件系统安装**：例如 Codex、Claude 技能目录。推荐这种方式，因为它会把 `scripts/` 一起放到本地，可以直接调用脚本。
+- **纯文本安装**：例如 `.cursorrules`、Copilot 指令文件、知识库上传。这种方式可以保留工作流说明，但不会自动带上本地 `scripts/`。如果你还想走脚本触发，就需要把脚本额外复制到本地工具目录；否则请按照 `SKILL.md` 中的 Jenkins Web UI 流程来用。
+
+</details>
+
 ### 快速开始
 
-你可以选择以下任意一种方式。所有命令都请在 `jenkins-deploy-skill` 根目录下执行。
+如果你现在只想先接通一个 Jenkins 项目，建议从这里开始。所有命令都请在 `jenkins-deploy-skill` 根目录下执行。
 
-#### 方式一：命令行修改
+这一节使用更轻量的单项目配置，也就是 `config.example.json`。推荐写法是把 `dev`、`test`、`pre` 都明确放进 `environments`，用户一眼就能看明白。如果你希望一个 skill 同时管理多个项目，可以直接看后面的“高级用法：多项目与多环境部署”。
+
+#### 方式一：手动修改
 
 1. 先根据模板生成 `config.json`。
 
@@ -368,75 +588,20 @@ python3 --version
    cp config.example.json config.json
    ```
 
-2. 通过命令行直接修改 `config.json` 中的关键字段。
-
-   **Windows (PowerShell):**
-   ```powershell
-   $config = Get-Content .\config.json -Raw | ConvertFrom-Json
-   $config.jenkinsBaseUrl = "http://your-jenkins-server:8080"
-   $config.jobName = "your-job-name"
-   $config.credentialTarget = "jenkins-api-auth-id"
-   $config.branch = "dev"
-   $config.branchParamName = "BRANCH"
-   $config | ConvertTo-Json -Depth 10 | Set-Content .\config.json
-   ```
-
-   **macOS / Linux (Bash):**
-   ```bash
-   python3 - <<'PY'
-   import json
-   from pathlib import Path
-   path = Path("config.json")
-   config = json.loads(path.read_text(encoding="utf-8"))
-   config["jenkinsBaseUrl"] = "http://your-jenkins-server:8080"
-   config["jobName"] = "your-job-name"
-   config["credentialTarget"] = "jenkins-api-auth-id"
-   config["branch"] = "dev"
-   config["branchParamName"] = "BRANCH"
-   path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-   PY
-   ```
-
-3. 检查 `config.json` 是否已经生成，并确认配置内容符合预期。
-
-   **Windows (PowerShell):**
-   ```powershell
-   Get-Content .\config.json
-   ```
-
-   **macOS / Linux (Bash):**
-   ```bash
-   cat ./config.json
-   ```
-
-#### 方式二：手动修改
-
-1. 先根据 `config.example.json` 生成 `config.json`。
-
-   **Windows (PowerShell):**
-   ```powershell
-   Copy-Item config.example.json config.json
-   ```
-
-   **macOS / Linux (Bash):**
-   ```bash
-   cp config.example.json config.json
-   ```
-
 2. 使用你喜欢的编辑器在 `jenkins-deploy-skill` 根目录中打开 `config.json`，例如 VS Code、记事本或其他文本编辑器。
 
-3. 将示例占位值替换成你自己的 Jenkins 配置。关键字段如下：
+3. 将示例占位值替换成你自己的 Jenkins 配置。模板本身保持标准 JSON，这样在编辑器、校验工具和自动化场景里都更稳定。
+
+4. 关键字段如下：
 
    | 字段 | 说明 | 常见取值 |
    |------|------|----------|
-   | `jenkinsBaseUrl` | Jenkins 服务地址 | `http://your-jenkins-server:8080` |
-   | `jobName` | 要触发的 Jenkins Job 名称 | `your-job-name` |
-   | `credentialTarget` | Windows Credential Manager 或 macOS Keychain 使用的凭据目标名 | `jenkins-api-auth-id` |
-   | `branch` | 默认要构建的分支 | `dev` |
+   | `defaultEnvironment` | 没有明确指定环境时默认使用的环境 | `dev` |
    | `branchParamName` | Jenkins 中分支参数名 | `BRANCH` |
-   | `environments` | 可选的多环境覆盖配置，例如 `test`、`pre` | 参考 `config.example.json` |
+   | `environments` | `dev`、`test`、`pre` 等环境块；每个环境都可以有自己的 Jenkins 地址、Job、分支和 `credentialTarget` | 参考 `config.example.json` |
+   | `gitFlow` | 可选的发布流程规则，例如自动提交和串联发布 | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
 
-4. 保存文件后，使用下面的命令快速确认最终配置内容。
+5. 保存文件后，使用下面的命令快速确认最终配置内容。
 
    **Windows (PowerShell):**
    ```powershell
@@ -447,6 +612,110 @@ python3 --version
    ```bash
    cat ./config.json
    ```
+
+#### 方式二：命令行生成 `config.json`
+
+1. 如果你更习惯待在终端里，也可以直接把配置文件写出来，而不是打开编辑器逐个修改。
+
+   **Windows (PowerShell):**
+   ```powershell
+   @'
+   {
+     "gitFlow": {
+       "autoCommitBeforeDeploy": true,
+       "allowCascadePromote": true
+     },
+     "defaultEnvironment": "dev",
+     "branchParamName": "BRANCH",
+     "environments": {
+       "dev": {
+         "jenkinsBaseUrl": "http://your-jenkins-server:8080",
+         "jobName": "your-job-name",
+         "credentialTarget": "jenkins-api-auth-id",
+         "branch": "dev"
+       },
+       "test": {
+         "jenkinsBaseUrl": "https://your-test-jenkins-server:8080",
+         "jobName": "your-test-job-name",
+         "credentialTarget": "jenkins-test-auth-id",
+         "branch": "test"
+       }
+     }
+   }
+   '@ | Set-Content .\config.json -Encoding UTF8
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cat > ./config.json <<'EOF'
+   {
+     "gitFlow": {
+       "autoCommitBeforeDeploy": true,
+       "allowCascadePromote": true
+     },
+     "defaultEnvironment": "dev",
+     "branchParamName": "BRANCH",
+     "environments": {
+       "dev": {
+         "jenkinsBaseUrl": "http://your-jenkins-server:8080",
+         "jobName": "your-job-name",
+         "credentialTarget": "jenkins-api-auth-id",
+         "branch": "dev"
+       },
+       "test": {
+         "jenkinsBaseUrl": "https://your-test-jenkins-server:8080",
+         "jobName": "your-test-job-name",
+         "credentialTarget": "jenkins-test-auth-id",
+         "branch": "test"
+       }
+     }
+   }
+   EOF
+   ```
+
+2. 检查 `config.json` 是否已经生成，并确认配置内容符合预期。
+
+   **Windows (PowerShell):**
+   ```powershell
+   Get-Content .\config.json
+   ```
+
+   **macOS / Linux (Bash):**
+   ```bash
+   cat ./config.json
+   ```
+
+#### 端到端示例
+
+前面的步骤都完成后，最简单的端到端验证方式，就是直接在聊天框里对 AI 说：
+
+```text
+帮我部署到 dev 环境
+```
+
+如果你已经配置了多环境，也可以直接说：
+
+```text
+帮我部署到 test 环境
+```
+
+一次成功的执行，通常会按顺序完成这三件事：
+
+1. 按目标环境把正确的 Git 分支做集成或晋级
+2. 把目标发布分支推到远端仓库
+3. 触发对应环境的 Jenkins Job
+
+如果助手可以直接访问本地脚本，终端输出通常会类似这样：
+
+```text
+Applying environment overrides for: dev
+Trigger Jenkins build: http://your-jenkins-server:8080 / job=your-job-name / BRANCH=dev / user=your-jenkins-username
+Triggered buildWithParameters successfully.
+```
+
+随后你应该能在 Jenkins 里看到对应 Job 新出现一条排队中或运行中的构建记录。这就是最直接的 happy path 检查方式。
+
+如果你现在用的是纯文本安装方式，上面的说法仍然可以照用，但前提是助手还能访问本地的 `trigger_jenkins_build.ps1` 或 `trigger_jenkins_build.py`。如果拿不到本地脚本，就请改走 `SKILL.md` 里写的 Jenkins Web UI 流程。
 
 ### 项目结构
 
@@ -456,6 +725,7 @@ jenkins-deploy-skill/
 |-- README.md
 |-- LICENSE
 |-- config.example.json
+|-- config.multi-project.example.json
 |-- .gitignore
 |-- CONTRIBUTING.md
 `-- scripts/
@@ -463,12 +733,116 @@ jenkins-deploy-skill/
     `-- trigger_jenkins_build.py    # macOS/Linux 触发脚本
 ```
 
-### 高级用法：多环境部署
+### 推荐的 Git 发布流程
 
-如果您在不同的环境对应了不同的 Jenkins 节点，例如内网发 `dev`，云端发 `test`，您只要在 `config.json` 中配置 `environments` 节点，并参考 `config.example.json` 里的覆盖规则即可。
+这个 skill 最适合配合一套职责清晰的环境分支来使用。
 
-运行时，您只需在聊天框对 AI 说“帮我发 test 环境”，AI 就会在后台自动补上对应
-的环境参数，智能切换到正确的内网或云端环境。
+> 说明：`dev`、`test`、`pre`、`gray` 只是常见示例，不是固定标准。不同团队完全可以使用自己的环境命名。这个 skill 的实际行为由 `config.json` 中各环境的配置决定，尤其是每个环境自己的 `branch`、Jenkins 地址、Job 和凭据设置。
+
+#### 环境职责
+
+| 环境 | 角色 | 默认接收来源 |
+|------|------|--------------|
+| `dev` | 集成环境 | 你的工作分支，例如 `feature/login` |
+| `test` | 晋级环境 | `dev` 对应的分支 |
+| `pre` | 晋级环境 | `test` 对应的分支 |
+| `gray` | 近生产环境 | 默认手动处理 |
+
+#### 默认晋级路径
+
+```text
+feature/login ──► dev ──► test ──► pre ──► (gray: manual)
+     ▲               │         │
+     │               │         │
+  auto-commit     promote   promote
+  (if needed)   (ff-only)  (ff-only)
+```
+
+- **发布 `dev`**：把你的工作分支集成到 `dev` 对应的分支。
+- **发布 `test`**：把 `dev` 对应的分支晋级到 `test` 对应的分支。
+- **发布 `pre`**：把 `test` 对应的分支晋级到 `pre` 对应的分支。
+
+> ⚠️ 默认情况下，`test` 和 `pre` 都是“晋级”步骤，不直接接收个人工作分支。
+
+#### 分支映射规则
+
+Git 目标分支直接来自环境自己的 `branch` 配置。
+
+- 在推荐的单项目格式里，使用 `defaultEnvironment: "dev"`，并把 `dev`、`test`、`pre` 显式写在 `environments` 下面。
+- 在多项目格式里，使用 `projects.<name>.environments.<env>.branch`。
+- 为了兼容老版本，单项目格式仍然支持顶层的 `branch`、`jenkinsBaseUrl`、`jobName` 等字段。
+
+#### 未提交修改怎么处理
+
+如果当前工作分支还有未提交修改，skill 可以先在当前工作分支上做一次受控自动提交，这样整条发布链路可以一次跑完。它不会直接在 `dev`、`test`、`pre` 这些长期存在的环境分支上制造脏提交。
+
+实际执行时，skill 会通过临时本地分支保护你的长期环境分支，也避免改写你自己的工作分支历史。
+
+#### `gitFlow` 配置项
+
+| 配置项 | 默认值 | 作用 |
+|--------|--------|------|
+| `autoCommitBeforeDeploy` | `true` | 允许在发布前对当前工作分支做一次受控自动提交 |
+| `allowCascadePromote` | `true` | 允许串联发布。比如你在 `feature/login` 上直接说“发 test”，skill 会先集成到 `dev`，再从 `dev` 晋级到 `test` |
+
+
+
+### 高级用法：多项目与多环境部署
+
+如果一个 skill 需要同时覆盖多个项目，请不要再从 `config.example.json` 起步，而是直接使用 `config.multi-project.example.json`。
+
+这个格式支持 `defaultProject`、`projects.<name>.defaults` 和 `projects.<name>.environments.<env>`，所以每个项目、每个环境都可以有自己独立的 Jenkins 地址、Job、分支和 `credentialTarget`。
+
+对于单项目格式，这个能力其实也已经存在于 `environments` 里：`dev`、`test`、`pre` 完全可以各自使用不同的 Jenkins 地址和 `credentialTarget`，不需要等到多项目模式才能做到。
+
+#### 如果你是在聊天框里直接使用
+
+对大多数用户来说，只需要这样说就够了：
+
+```text
+帮我发 demo-admin 的 test 环境
+```
+
+如果你是单项目配置，也可以直接说：
+
+```text
+帮我发 test 环境
+```
+
+skill 会根据 `config.json` 自动决定项目、环境、分支、Jenkins 地址和凭据。
+
+<details>
+<summary>如果你是手动执行脚本</summary>
+
+下面这些参数说明，只针对直接运行 `trigger_jenkins_build.ps1` 或 `trigger_jenkins_build.py` 的用户。
+
+##### 项目怎么选
+
+| 场景 | 结果 |
+|------|------|
+| 显式传了 `--project` 或 `-Project` | 优先使用这个项目 |
+| 没有显式传项目 | 使用 `defaultProject` |
+| 配置里实际上只有一个项目 | 脚本可以自动识别 |
+| 配置里有多个项目、又没有 `defaultProject` | 需要明确指定项目名 |
+
+##### 配置文件怎么选
+
+| 场景 | 结果 |
+|------|------|
+| 显式传了 `--config-file` 或 `-ConfigFile` | 使用这个文件 |
+| 没有显式传配置文件 | 只读取 `config.json` |
+| 目录里同时存在 `config.multi-project.json` | 不会自动切过去 |
+| 想使用 `config.multi-project.example.json` | 先复制或改名成 `config.json`，或者通过 `--config-file` 显式指定 |
+
+##### 环境怎么选
+
+| 场景 | 结果 |
+|------|------|
+| 显式传了 `--target-env` 或 `-TargetEnv` | 优先使用这个环境 |
+| 没有显式传环境，且配置了 `defaultEnvironment` | 使用 `defaultEnvironment` |
+| 没有 `defaultEnvironment`，但存在 `dev` | 默认走 `dev` |
+
+##### 手动执行脚本示例
 
 **Windows**
 ```powershell
@@ -479,6 +853,20 @@ powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 -Ta
 ```bash
 python3 ./scripts/trigger_jenkins_build.py --target-env test
 ```
+
+**Windows (PowerShell)**
+```powershell
+Copy-Item config.multi-project.example.json config.json
+powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 -Project demo-admin -TargetEnv test
+```
+
+**macOS / Linux**
+```bash
+cp config.multi-project.example.json config.json
+python3 ./scripts/trigger_jenkins_build.py --project demo-admin --target-env test
+```
+
+</details>
 
 ### 常见问题与排错
 
@@ -491,6 +879,60 @@ python3 ./scripts/trigger_jenkins_build.py --target-env test
 3. 将解决后的代码在本地提交。
 4. 再次调用这个 Skill，继续后续的 Push 和 Jenkins 触发流程。
 
+#### 代码已经 Push 成功，但 Jenkins 触发失败怎么办
+
+- 即使 Jenkins 没有成功启动，代码也可能已经在目标分支上了。
+- 这种情况下，默认不需要回滚 Git。
+- 先解决 Jenkins 侧的问题，比如凭据失效、crumb 接口不可用、网络不通等。
+- 之后重新调用这个 skill，或者手动触发同一个 Jenkins Job 即可。
+
+#### Jenkins 认证失败怎么办
+
+- 先确认 `credentialTarget` 和 Windows Credential Manager 或 macOS Keychain 里保存的目标名称完全一致。
+- 确认 Jenkins 用户名和 API Token 仍然有效。
+- 如果你走的是环境变量兜底，确认当前终端会话里已经设置了 `JENKINS_USERNAME` 和 `JENKINS_API_TOKEN`。
+
+#### CSRF crumb 相关错误怎么办
+
+- 先确认 `jenkinsBaseUrl` 是否写对，并且当前机器可以访问。
+- 确认对应 Jenkins 用户有权限访问 crumb issuer 接口。
+- 如果 Jenkins 前面有反向代理，再检查代理层是否丢掉了必要请求头。
+
+#### `config.json` 路径不对或读错文件怎么办
+
+- 默认情况下，脚本只会读取 `config.json`。
+- 如果你想用别的配置文件，请显式传 `--config-file` 或 `-ConfigFile`。
+- `config.multi-project.example.json` 只是模板，只有复制或显式指定之后才会真正生效。
+
+#### 受保护分支导致 Push 失败怎么办
+
+- 这个 skill 默认假设目标发布分支允许直接 push。
+- 如果仓库对 `dev`、`test`、`pre` 等分支开启了保护规则，即使本地合并成功，push 也可能被拒绝。
+- 这时就需要切回你们团队自己的 PR 流程，或者调整对应发布分支的保护策略。
+
+#### `--ff-only` 晋级失败怎么办
+
+- 这通常表示上游分支已经前进了，当前这次晋级不再是 fast-forward。
+- 先把上游分支同步到最新，再重新执行 skill。
+- 比如常见的 `dev -> test` 晋级，可以先执行：
+
+```bash
+git fetch origin
+git checkout dev
+git pull --ff-only
+```
+
+- 如果失败发生在“个人工作分支 -> dev”的集成阶段，就先按团队约定把你的工作分支同步到最新的 `origin/dev`，解决冲突后再重新发布。
+
 ### 许可证
 
 [MIT](./LICENSE)
+
+## Project Metadata
+
+| Field | Value |
+|-------|-------|
+| Version | `1.1.0` |
+| Author | `maiml` |
+| Repository | [maimingliang/jenkins-deploy-skill](https://github.com/maimingliang/jenkins-deploy-skill) |
+| Tags | `jenkins`, `deploy`, `ci-cd`, `git`, `devops` |

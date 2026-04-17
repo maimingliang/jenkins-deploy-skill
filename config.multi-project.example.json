@@ -1,0 +1,55 @@
+{
+  "gitFlow": {
+    "autoCommitBeforeDeploy": true,
+    "allowCascadePromote": true
+  },
+  "defaultProject": "demo-admin",
+  "projects": {
+    "demo-admin": {
+      "defaultEnvironment": "dev",
+      "defaults": {
+        "branchParamName": "BRANCH"
+      },
+      "environments": {
+        "dev": {
+          "jenkinsBaseUrl": "http://your-internal-jenkins:8080",
+          "jobName": "demo-admin-dev-job",
+          "credentialTarget": "demo-admin-dev-auth",
+          "branch": "dev"
+        },
+        "test": {
+          "jenkinsBaseUrl": "https://your-cloud-jenkins.corp.com",
+          "jobName": "demo-admin-test-job",
+          "credentialTarget": "demo-admin-test-auth",
+          "branch": "test"
+        },
+        "pre": {
+          "jenkinsBaseUrl": "https://your-cloud-jenkins.corp.com",
+          "jobName": "demo-admin-pre-job",
+          "credentialTarget": "demo-admin-pre-auth",
+          "branch": "pre"
+        }
+      }
+    },
+    "demo-service": {
+      "defaultEnvironment": "dev",
+      "defaults": {
+        "branchParamName": "BRANCH"
+      },
+      "environments": {
+        "dev": {
+          "jenkinsBaseUrl": "http://your-internal-jenkins:8080",
+          "jobName": "demo-service-dev-job",
+          "credentialTarget": "demo-service-dev-auth",
+          "branch": "dev"
+        },
+        "test": {
+          "jenkinsBaseUrl": "https://your-cloud-jenkins.corp.com",
+          "jobName": "demo-service-test-job",
+          "credentialTarget": "demo-service-test-auth",
+          "branch": "test"
+        }
+      }
+    }
+  }
+}

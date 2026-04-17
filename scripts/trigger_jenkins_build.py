@@ -3,7 +3,6 @@
 # Licensed under the MIT License
 """
 跨平台 Jenkins 触发脚本。
-
 - Windows：转调现有 PowerShell 脚本，保留 CredentialManager 自动安装与原有行为。
 - macOS：直接读取 Keychain，并调用 Jenkins REST API。
 - Linux/CI：优先使用命令行参数，其次使用环境变量。
@@ -34,6 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="跨平台 Jenkins 构建触发器（Windows 会转调 PowerShell 版本）。"
     )
     parser.add_argument("-ConfigFile", "--config-file", dest="config_file")
+    parser.add_argument("-Project", "--project", dest="project")
     parser.add_argument("-TargetEnv", "--target-env", dest="target_env")
     parser.add_argument("-JenkinsBaseUrl", "--jenkins-base-url", dest="jenkins_base_url")
     parser.add_argument("-JobName", "--job-name", dest="job_name")
@@ -53,6 +53,20 @@ def default_config_path() -> Path:
     return SKILL_ROOT / "config.json"
 
 
+def strip_config_comments(text: str) -> str:
+    """
+    Strips // and /* */ comments from a string, respecting quoted strings.
+    """
+    regex = r'("(?:\\.|[^"\\])*")|(?P<comment>//.*|/\*.*?\*/)'
+
+    def substitute(match: re.Match) -> str:
+        if match.group("comment"):
+            return ""
+        return match.group(1)
+
+    return re.sub(regex, substitute, text, flags=re.DOTALL)
+
+
 def load_config(path_value: Optional[str]) -> Dict[str, Any]:
     path = Path(path_value).expanduser() if path_value else default_config_path()
     if not path.exists():
@@ -61,7 +75,8 @@ def load_config(path_value: Optional[str]) -> Dict[str, Any]:
 
     try:
         raw = path.read_text(encoding="utf-8-sig")
-        parsed = json.loads(raw)
+        clean = strip_config_comments(raw)
+        parsed = json.loads(clean)
     except Exception as exc:  # noqa: BLE001
         warn(f"Failed to parse config file: {exc}")
         return {}
@@ -81,22 +96,167 @@ def resolve_param(cli_value: Optional[str], config_value: Any, default: str) -> 
     return default
 
 
-def apply_environment_overrides(config: Mapping[str, Any], target_env: Optional[str]) -> Dict[str, Any]:
-    if not target_env:
-        return dict(config)
+def mapping_or_empty(value: Any) -> Dict[str, Any]:
+    if isinstance(value, Mapping):
+        return dict(value)
+    return {}
 
-    environments = config.get("environments")
-    if not isinstance(environments, dict):
-        return dict(config)
 
-    env_config = environments.get(target_env)
-    if not isinstance(env_config, dict):
-        return dict(config)
+def select_project_name(config: Mapping[str, Any], requested_project: Optional[str]) -> str:
+    projects = mapping_or_empty(config.get("projects"))
+    if not projects:
+        raise RuntimeError("Multi-project config is missing the 'projects' block.")
 
-    print(f"Applying environment overrides for: {target_env}")
+    if requested_project:
+        if requested_project in projects:
+            return requested_project
+        raise RuntimeError(f"Project '{requested_project}' was not found in config.json.")
+
+    default_project = str(config.get("defaultProject") or "").strip()
+    if default_project:
+        if default_project in projects:
+            return default_project
+        raise RuntimeError(f"defaultProject '{default_project}' was not found in config.json.")
+
+    if len(projects) == 1:
+        return next(iter(projects))
+
+    raise RuntimeError(
+        "Project is required for multi-project config. Set defaultProject in config.json "
+        "or pass -Project/--project."
+    )
+
+
+def select_environment_name(
+    project_name: str,
+    project_config: Mapping[str, Any],
+    requested_target_env: Optional[str],
+) -> Optional[str]:
+    environments = mapping_or_empty(project_config.get("environments"))
+
+    if requested_target_env:
+        if not environments or requested_target_env not in environments:
+            raise RuntimeError(
+                f"Target environment '{requested_target_env}' was not found under project "
+                f"'{project_name}'."
+            )
+        return requested_target_env
+
+    default_environment = str(project_config.get("defaultEnvironment") or "").strip()
+    if default_environment:
+        if default_environment in environments:
+            return default_environment
+        raise RuntimeError(
+            f"defaultEnvironment '{default_environment}' was not found under project "
+            f"'{project_name}'."
+        )
+
+    if "dev" in environments:
+        return "dev"
+    if len(environments) == 1:
+        return next(iter(environments))
+    return None
+
+
+def resolve_project_defaults(project_config: Mapping[str, Any]) -> Dict[str, Any]:
+    resolved: Dict[str, Any] = {}
+    for key in (
+        "jenkinsBaseUrl",
+        "jobName",
+        "credentialTarget",
+        "branch",
+        "branchParamName",
+    ):
+        if key in project_config:
+            resolved[key] = project_config[key]
+
+    resolved.update(mapping_or_empty(project_config.get("defaults")))
+    return resolved
+
+
+def select_legacy_environment_name(
+    config: Mapping[str, Any],
+    requested_target_env: Optional[str],
+) -> Optional[str]:
+    environments = mapping_or_empty(config.get("environments"))
+
+    if requested_target_env:
+        if not environments or requested_target_env not in environments:
+            raise RuntimeError(
+                f"Target environment '{requested_target_env}' was not found in legacy config."
+            )
+        return requested_target_env
+
+    default_environment = str(config.get("defaultEnvironment") or "").strip()
+    if default_environment:
+        if default_environment in environments:
+            return default_environment
+        raise RuntimeError(
+            f"defaultEnvironment '{default_environment}' was not found in legacy config."
+        )
+
+    if "dev" in environments:
+        return "dev"
+    if len(environments) == 1:
+        return next(iter(environments))
+    return None
+
+
+def resolve_legacy_config(config: Mapping[str, Any], target_env: Optional[str]) -> Dict[str, Any]:
     merged = dict(config)
+    selected_env = select_legacy_environment_name(config, target_env)
+    if not selected_env:
+        return merged
+
+    environments = mapping_or_empty(config.get("environments"))
+    env_config = mapping_or_empty(environments.get(selected_env))
+    print(f"Applying environment overrides for: {selected_env}")
     merged.update(env_config)
+    merged["targetEnv"] = selected_env
     return merged
+
+
+def resolve_multi_project_config(
+    config: Mapping[str, Any],
+    requested_project: Optional[str],
+    requested_target_env: Optional[str],
+) -> Dict[str, Any]:
+    projects = mapping_or_empty(config.get("projects"))
+    project_name = select_project_name(config, requested_project)
+    project_config = mapping_or_empty(projects.get(project_name))
+    if not project_config:
+        raise RuntimeError(f"Project '{project_name}' was not found in config.json.")
+
+    print(f"Using project: {project_name}")
+    resolved = resolve_project_defaults(project_config)
+
+    target_env_name = select_environment_name(project_name, project_config, requested_target_env)
+    if target_env_name:
+        environments = mapping_or_empty(project_config.get("environments"))
+        env_config = mapping_or_empty(environments.get(target_env_name))
+        print(f"Applying environment overrides for: {target_env_name}")
+        resolved.update(env_config)
+        resolved["targetEnv"] = target_env_name
+
+    resolved["projectName"] = project_name
+    return resolved
+
+
+def resolve_effective_config(
+    config: Mapping[str, Any],
+    requested_project: Optional[str],
+    requested_target_env: Optional[str],
+) -> Dict[str, Any]:
+    projects = mapping_or_empty(config.get("projects"))
+    if projects:
+        return resolve_multi_project_config(config, requested_project, requested_target_env)
+
+    if requested_project:
+        warn(
+            f"Project '{requested_project}' was ignored because config.json is using the "
+            "legacy single-project format."
+        )
+    return resolve_legacy_config(config, requested_target_env)
 
 
 def resolve_macos_credential(target: str) -> Tuple[Optional[str], Optional[str]]:
@@ -217,6 +377,22 @@ def powershell_command_name() -> Optional[str]:
     return None
 
 
+def translate_args_for_powershell(original_args: Sequence[str]) -> Sequence[str]:
+    arg_map = {
+        "--config-file": "-ConfigFile",
+        "--project": "-Project",
+        "--target-env": "-TargetEnv",
+        "--jenkins-base-url": "-JenkinsBaseUrl",
+        "--job-name": "-JobName",
+        "--username": "-Username",
+        "--api-token": "-ApiToken",
+        "--credential-target": "-CredentialTarget",
+        "--branch": "-Branch",
+        "--branch-param-name": "-BranchParamName",
+    }
+    return [arg_map.get(arg, arg) for arg in original_args]
+
+
 def delegate_to_powershell(original_args: Sequence[str]) -> int:
     command_name = powershell_command_name()
     if not command_name:
@@ -234,7 +410,7 @@ def delegate_to_powershell(original_args: Sequence[str]) -> int:
         "Bypass",
         "-File",
         str(ps_script),
-        *original_args,
+        *translate_args_for_powershell(original_args),
     ]
     completed = subprocess.run(command, check=False)
     return completed.returncode
@@ -246,13 +422,18 @@ def validate_required(name: str, value: str, hint: str) -> None:
 
 
 def main(argv: Sequence[str]) -> int:
+    if "-h" in argv or "--help" in argv:
+        parser = build_parser()
+        parser.print_help()
+        return 0
+
     if platform.system() == "Windows":
         return delegate_to_powershell(argv)
 
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    config = apply_environment_overrides(load_config(args.config_file), args.target_env)
+    config = resolve_effective_config(load_config(args.config_file), args.project, args.target_env)
 
     resolved_jenkins_base_url = resolve_param(args.jenkins_base_url, config.get("jenkinsBaseUrl"), "")
     resolved_job_name = resolve_param(args.job_name, config.get("jobName"), "")
