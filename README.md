@@ -304,12 +304,6 @@ The target Git branch is determined by your `config.json` structure:
 
 The system automatically selects the correct target branch based on the requested environment.
 
-#### Remote State Synchronization
-**No manual pull is required** for environment branches (`dev`, `test`, etc.). The Skill follows an "isolated execution" strategy:
-1. **Auto Fetch**: It automatically runs `git fetch origin` before every operation.
-2. **Remote-First**: All work is performed on a temporary branch created directly from `origin/<target>` (e.g., `origin/dev`).
-3. **Clean Workspace**: Your local `dev`, `test`, and `pre` branches remain untouched, keeping your workspace clean.
-
 #### Uncommitted Changes
 
 If your working branch still has uncommitted changes, the skill can create one controlled auto-commit on that working branch before deployment. It will not commit directly on `dev`, `test`, `pre`, or any long-lived environment branch.
@@ -780,14 +774,6 @@ Git 目标分支的选取规则取决于 `config.json` 的组织结构：
 - **多项目模式**：通过 `projects.<name>.environments.<env>.branch` 路径进行定义。
 
 系统将根据当前目标环境，自动选取对应的分支进行代码同步与发布。
-
-#### 远端状态自动同步
-
-**您无需手动拉取** 环境分支（如 `dev`、`test`）。本 Skill 采用“基于远端状态的隔离执行”策略：
-
-1. **自动 Fetch**：操作开始前会自动执行 `git fetch origin`，确保获取最新云端状态。
-2. **基准对齐**：所有工作均在基于 `origin/<target>`（如 `origin/dev`）创建的临时分支上进行。
-3. **零污染**：您本地的 `dev`、`test`、`pre` 分支将保持原样，助手不会改动它们，确保您的本地工作区逻辑清晰。
 
 #### 未提交修改怎么处理
 

@@ -111,7 +111,7 @@ Recommended flow:
 1. Record the current source branch
 2. If allowed and needed, auto-commit uncommitted changes on the current personal branch
 3. `git fetch origin`
-4. Create a temporary local branch from `origin/<target-branch>`
+4. Create a temporary local branch from `origin/<target-branch>`. **Include a unique random suffix** to avoid name collisions.
 5. Merge the correct source branch into that temporary branch
 6. Push with `git push origin HEAD:<target-branch>`
 7. Trigger Jenkins only after the push succeeds
@@ -120,7 +120,7 @@ Recommended flow:
 Example temporary branch name:
 
 ```text
-codex/tmp-test-20260417-153000-abcd
+tmp-deploy/test-20260417-153000-q2w3
 ```
 
 ## Merge Strategy
