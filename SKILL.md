@@ -12,7 +12,7 @@ description: >
 ## Project Metadata
 
 | Field | Value |
-| Version | `1.2.0` |
+| Version | `1.2.1` |
 | Author | `maiml` |
 | Repository | [maimingliang/jenkins-deploy-skill](https://github.com/maimingliang/jenkins-deploy-skill) |
 | Tags | `jenkins`, `deploy`, `ci-cd`, `git`, `devops` |

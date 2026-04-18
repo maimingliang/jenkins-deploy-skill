@@ -8,8 +8,7 @@ Thank you for considering contributing to this project! 🎉
 
 - Use [GitHub Issues](../../issues) to report bugs or request features
 - Include your PowerShell version (`$PSVersionTable.PSVersion`)
-- If the issue is on macOS/Linux/Windows (Python), include your Python version (`python --version` or `python3 --version`)
-- Include the OS and version (e.g., Windows 11, macOS Sequoia, Ubuntu 24.04)
+- If the issue is on macOS/Linux, include your Python version (`python3 --version`)
 - Include the error message and steps to reproduce
 
 ### Submitting Changes

@@ -10,7 +10,7 @@ An AI Agent skill/prompt that automates the "merge -> push -> trigger Jenkins bu
 
 ### Features
 
-- 🔀 **Git flow** — follows a clear branch integration and promotion path, with force-push forbidden
+- 🔀 **Git flow** — follows a clear branch integration and sync path, with force-push forbidden
 - 🚀 **Jenkins trigger** — fires a parameterised build via Jenkins REST API
 - 🔐 **Secure credentials** — supports Windows Credential Manager, macOS Keychain, and environment-variable fallback
 - 📦 **Auto-install (Windows)** — automatically installs the `CredentialManager` PowerShell module if missing
@@ -137,7 +137,7 @@ This section introduces the most common single-project lightweight configuration
    | `defaultEnvironment` | Default environment when no environment is specified | `dev` |
    | `branchParamName` | Jenkins parameter name used for the branch | `BRANCH` |
    | `environments` | Environment blocks such as `dev`, `test`, and `pre`, each with its own Jenkins URL, job name, branch, and `credentialTarget` | see `config.example.json` |
-   | `gitFlow` | Optional deployment workflow rules:<br>• `autoCommitBeforeDeploy`: Auto-commit local changes before deployment<br>• `allowCascadePromote`: Enable one-click promotion from working branch to test/pre (automates integration and promotion) | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
+   | `gitFlow` | Optional deployment workflow rules:<br>• `autoCommitBeforeDeploy`: Auto-commit local changes before deployment<br>• `allowCascadePromote`: Enable one-click sync from working branch to test/pre (automates integration and sync) | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
 
 5. Save the file and quickly verify the final content.
 
@@ -226,9 +226,9 @@ This section introduces the most common single-project lightweight configuration
 
 </details>
 
-#### Happy Path Example
+#### Usage Example
 
-Once the steps above are done, the quickest end-to-end test is to ask the assistant to deploy to `dev`:
+Once the setup is complete, the best way to verify it is to issue a deployment command directly in the chat:
 
 ```text
 deploy to dev
@@ -279,19 +279,19 @@ This skill works best when each environment has a clear role.
 | `pre` | **Pre-release (Staging)** | the branch configured for `test` |
 | `gray` | **Gray (Alpha)** | manual only by default |
 
-#### Promotion Flow
+#### Sync Flow
 
 ```text
 feature/login ──► dev ──► test ──► pre ──► (gray: manual)
      ▲               │         │
      │               │         │
-  auto-commit     promote   promote
+  auto-commit      sync      sync
   (if needed)   (ff-only)  (ff-only)
 ```
 
 - **Deploy to `dev`**: **Integrate** (Merge) your feature branch into the Dev environment.
 - **Deploy to `test`**: **Sync** (Promote) the Dev stage code to the Test environment for verification.
-- **Deploy to `pre`**: **Push** (Promote) the verified Test code to the Pre-release environment.
+- **Deploy to `pre`**: **Sync** (Promote) the verified Test code to the Pre-release environment.
 
 > ⚠️ By default, `test` and `pre` are **Sync (Promotion)** stages. They do not receive a working branch directly.
 
@@ -304,6 +304,12 @@ The target Git branch is determined by your `config.json` structure:
 
 The system automatically selects the correct target branch based on the requested environment.
 
+#### Remote State Synchronization
+**No manual pull is required** for environment branches (`dev`, `test`, etc.). The Skill follows an "isolated execution" strategy:
+1. **Auto Fetch**: It automatically runs `git fetch origin` before every operation.
+2. **Remote-First**: All work is performed on a temporary branch created directly from `origin/<target>` (e.g., `origin/dev`).
+3. **Clean Workspace**: Your local `dev`, `test`, and `pre` branches remain untouched, keeping your workspace clean.
+
 #### Uncommitted Changes
 
 If your working branch still has uncommitted changes, the skill can create one controlled auto-commit on that working branch before deployment. It will not commit directly on `dev`, `test`, `pre`, or any long-lived environment branch.
@@ -315,7 +321,7 @@ Internally, the skill uses a temporary local branch to protect your long-lived b
 | Key | Default | Effect |
 |-----|---------|--------|
 | `autoCommitBeforeDeploy` | `true` | Allows one controlled auto-commit on your working branch before deploy |
-| `allowCascadePromote` | `true` | Allows chained promotion. For example, saying "deploy to test" from `feature/login` can first integrate into `dev`, then promote `dev` to `test` |
+| `allowCascadePromote` | `true` | Allows chained sync. For example, saying "deploy to test" from `feature/login` can first integrate into `dev`, then sync `dev` to `test` |
 
 
 
@@ -481,7 +487,7 @@ git pull --ff-only
 
 ### 特性
 
-- 🔀 **Git 流程** — 按清晰的分支集成和环境晋级路径发布，严格禁止 force push
+- 🔀 **Git 流程** — 按清晰的分支集成和环境同步路径发布，严格禁止 force push
 - 🚀 **Jenkins 触发** — 通过 REST API 触发参数化构建
 - 🔐 **安全凭据** — 支持 Windows Credential Manager、macOS Keychain 和环境变量兜底
 - 📦 **自动安装 (Windows)** — 缺少 `CredentialManager` PowerShell 模块时会自动安装
@@ -608,7 +614,7 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
    | `defaultEnvironment` | 没有明确指定环境时默认使用的环境 | `dev` |
    | `branchParamName` | Jenkins 中分支参数名 | `BRANCH` |
    | `environments` | `dev`、`test`、`pre` 等环境块；每个环境都可以有自己的 Jenkins 地址、Job、分支和 `credentialTarget` | 参考 `config.example.json` |
-   | `gitFlow` | 可选的发布流程规则：<br>• `autoCommitBeforeDeploy`: 部署前自动提交工作区修改<br>• `allowCascadePromote`: 允许从工作分支一键“直发” test/pre（自动完成集成与晋级） | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
+   | `gitFlow` | 可选的发布流程规则：<br>• `autoCommitBeforeDeploy`: 部署前自动提交工作区修改<br>• `allowCascadePromote`: 允许从工作分支一键“直发” test/pre（自动完成集成与同步） | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
 
 5. 保存文件后，使用下面的命令快速确认最终配置内容。
 
@@ -697,9 +703,9 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
 
 </details>
 
-#### 端到端示例
+#### 操作示例
 
-前面的步骤都完成后，最简单的端到端验证方式，就是直接在聊天框里对 AI 说：
+完成上述配置后，最直观的验证方式就是直接在聊天框中向 AI 发出部署指令：
 
 ```text
 帮我部署到 dev 环境
@@ -713,11 +719,11 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
 
 一次成功的执行，通常会按顺序完成这三件事：
 
-1. 按目标环境把正确的 Git 分支做集成或晋级
+1. 按目标环境把正确的 Git 分支做集成或同步
 2. 把目标发布分支推到远端仓库
 3. 触发对应环境的 Jenkins Job
 
-随后你应该能在 Jenkins 里看到对应 Job 新出现一条排队中或运行中的构建记录。这就是最直接的 happy path 检查方式。
+随后你应该能在 Jenkins 里看到对应 Job 新出现一条排队中或运行中的构建记录。这就是最直观的成功标志。
 
 ### 项目结构
 
@@ -750,19 +756,19 @@ jenkins-deploy-skill/
 | `pre` | **预发布环境** (Pre-release) | `test` 对应的分支 |
 | `gray` | **灰度环境** (Alpha/Gray) | 默认手动处理 |
 
-#### 默认晋级路径
+#### 同步链路
 
 ```text
 feature/login ──► dev ──► test ──► pre ──► (gray: manual)
      ▲               │         │
      │               │         │
-  auto-commit     promote   promote
+  auto-commit     sync   sync
   (if needed)   (ff-only)  (ff-only)
 ```
 
 - **发布 `dev`**：将功能分支代码**集成**（Merge）到开发环境。
 - **发布 `test`**：将开发环境的成果**同步**（Promote）到测试环境进行验证。
-- **发布 `pre`**：将测试通过的版本**推送**到预发布环境准备上线。
+- **发布 `pre`**：将测试通过的版本**同步**（Promote）到预发布环境准备上线。
 
 > ⚠️ 默认情况下，`test` 和 `pre` 均为**同步（Sync）**阶段，原则上不直接接收个人工作分支。
 
@@ -775,6 +781,14 @@ Git 目标分支的选取规则取决于 `config.json` 的组织结构：
 
 系统将根据当前目标环境，自动选取对应的分支进行代码同步与发布。
 
+#### 远端状态自动同步
+
+**您无需手动拉取** 环境分支（如 `dev`、`test`）。本 Skill 采用“基于远端状态的隔离执行”策略：
+
+1. **自动 Fetch**：操作开始前会自动执行 `git fetch origin`，确保获取最新云端状态。
+2. **基准对齐**：所有工作均在基于 `origin/<target>`（如 `origin/dev`）创建的临时分支上进行。
+3. **零污染**：您本地的 `dev`、`test`、`pre` 分支将保持原样，助手不会改动它们，确保您的本地工作区逻辑清晰。
+
 #### 未提交修改怎么处理
 
 如果当前工作分支还有未提交修改，skill 可以先在当前工作分支上做一次受控自动提交，这样整条发布链路可以一次跑完。它不会直接在 `dev`、`test`、`pre` 这些长期存在的环境分支上制造脏提交。
@@ -786,7 +800,7 @@ Git 目标分支的选取规则取决于 `config.json` 的组织结构：
 | 配置项 | 默认值 | 作用 |
 |--------|--------|------|
 | `autoCommitBeforeDeploy` | `true` | 允许在发布前对当前工作分支做一次受控自动提交 |
-| `allowCascadePromote` | `true` | 允许串联发布。比如你在 `feature/login` 上直接说“发 test”，skill 会先集成到 `dev`，再从 `dev` 晋级到 `test` |
+| `allowCascadePromote` | `true` | 允许串联发布。比如你在 `feature/login` 上直接说“发 test”，skill 会先集成到 `dev`，再从 `dev` 同步到 `test` |
 
 
 
@@ -941,7 +955,7 @@ git pull --ff-only
 
 | Field | Value |
 |-------|-------|
-| Version | `1.2.0` |
+| Version | `1.2.1` |
 | Author | `maiml` |
 | Repository | [maimingliang/jenkins-deploy-skill](https://github.com/maimingliang/jenkins-deploy-skill) |
 | Tags | `jenkins`, `deploy`, `ci-cd`, `git`, `devops` |
