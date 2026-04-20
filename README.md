@@ -15,10 +15,16 @@
 
 ## 简介
 
-最近在用 AI 开发项目的时候，修改完代码要发版，麻烦的要死：
-切终端 → `git checkout dev` → 合并 feature 分支 → push → 打开 Jenkins → 找到 Job → "Build with Parameters" → 填分支名 → 点构建 → 等队列。
+最近在用 AI 开发项目的时候，修改完代码要发版，麻烦的要死。
 
-一天发个三五次，**单是上下文切换就能耗掉半小时**。就想：为啥不让 AI 也直接把我发布，于是就有了这个 skill。如果你要发版，只需要对 AI 说：
+我们团队用 Jenkins 做 CI/CD，每次发布的固定动作是：
+
+> 切终端 → `git checkout dev` → 合并 feature 分支 → push → 打开 Jenkins → 
+> 找到 Job → "Build with Parameters" → 填分支名 → 点构建 → 等队列
+
+一天发个三五次，**单是上下文切换就能耗掉半小时**。
+为啥不让 AI 也直接把我发布，于是就有了这个 skill。
+如果你要发版，只需要对 AI 说：
 > **"帮我部署到 dev 环境"**
 
 ---
