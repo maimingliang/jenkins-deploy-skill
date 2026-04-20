@@ -8,20 +8,21 @@
 
 ---
 
-### 💡 为什么需要这个 Skill？
-
-最近在用 AI 开发项目的时候，修改完代码要发版，麻烦的要死：
-切终端 → `git checkout dev` → 合并 feature 分支 → push → 打开 Jenkins → 找到 Job → "Build with Parameters" → 填分支名 → 点构建 → 等队列。
-
-一天发个三五次，**单是上下文切换就能耗掉半小时**。就想：为啥不让 AI 直接帮我发布？于是就有了这个 Skill。现在如果你要发版，只需要对 AI 说：
-> **"帮我部署到 dev 环境"**
-
----
-
 > [!CAUTION]
 > **免责声明 (Disclaimer)**：本工具仅建议用于开发和测试环境。由于自动化合并与 Jenkins 触发涉及核心业务流程，**严禁直接用于生产环境 (Production) 发布**。作者不对因使用本工具导致的任何生产事故、损失或数据丢失负责。
 
 # 使用指南 (Usage Guide)
+
+## 简介
+
+最近在用 AI 开发项目的时候，修改完代码要发版，麻烦的要死：
+切终端 → `git checkout dev` → 合并 feature 分支 → push → 打开 Jenkins → 找到 Job → "Build with Parameters" → 填分支名 → 点构建 → 等队列。
+
+一天发个三五次，**单是上下文切换就能耗掉半小时**。就想：为啥不让 AI 也直接把我发布，于是就有了这个 skill。如果你要发版，只需要对 AI 说：
+> **"帮我部署到 dev 环境"**
+
+---
+
 
 
 ## 1. 环境准备 (Environment Check)
