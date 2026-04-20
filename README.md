@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/github/license/maimingliang/jenkins-deploy-skill?style=flat-square)
 ![Repo Size](https://img.shields.io/github/repo-size/maimingliang/jenkins-deploy-skill?style=flat-square)
 
-[English](./TECHNICAL_EN.md) | [简体中文](./TECHNICAL_ZH.md) | [技术文档汇总 (All Docs)](./TECHNICAL_ZH.md)
+[English](https://github.com/maimingliang/jenkins-deploy-skill/wiki/English) | [简体中文](https://github.com/maimingliang/jenkins-deploy-skill/wiki/简体中文) | [Wiki 技术文档](https://github.com/maimingliang/jenkins-deploy-skill/wiki)
 
 ---
 
@@ -13,9 +13,6 @@
 
 # 使用指南 (Usage Guide)
 
-本指南通过截图展示了从环境准备到成功发布的完整流程。
-
----
 
 ## 1. 环境准备 (Environment Check)
 
@@ -84,9 +81,8 @@ AI 会自动完成以下操作：
 
 ## 更多参考
 *   详细的参数说明与技术细节请查看：
-    *   [English Technical Docs](./TECHNICAL_EN.md)
-    *   [简体中文技术文档](./TECHNICAL_ZH.md)
-*   AI 助手规范定义请查看 [SKILL.md](./SKILL.md)。
+    *   [English Technical Documentation (Wiki)](https://github.com/maimingliang/jenkins-deploy-skill/wiki/English)
+    *   [简体中文技术文档 (Wiki)](https://github.com/maimingliang/jenkins-deploy-skill/wiki/简体中文)
 
 ---
 
