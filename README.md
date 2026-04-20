@@ -1,6 +1,11 @@
 # jenkins-deploy-skill
 
-[English](#english) | [中文](#中文)
+![Version](https://img.shields.io/github/v/tag/maimingliang/jenkins-deploy-skill?label=version&style=flat-square)
+![License](https://img.shields.io/github/license/maimingliang/jenkins-deploy-skill?style=flat-square)
+![Repo Size](https://img.shields.io/github/repo-size/maimingliang/jenkins-deploy-skill?style=flat-square)
+
+
+[English](#english) | [简体中文](#简体中文)
 
 ---
 
@@ -8,15 +13,6 @@
 
 An AI Agent skill/prompt that automates the "merge -> push -> trigger Jenkins build" workflow. It merges your feature branch into a deploy branch via Git and triggers a parameterised Jenkins build through the REST API.
 
-### Features
-
-- 🔀 **Git flow** — follows a clear branch integration and sync path, with force-push forbidden
-- 🚀 **Jenkins trigger** — fires a parameterised build via Jenkins REST API
-- 🔐 **Secure credentials** — supports Windows Credential Manager, macOS Keychain, and environment-variable fallback
-- 📦 **Auto-install (Windows)** — automatically installs the `CredentialManager` PowerShell module if missing
-- ⚙️ **Configurable** — all values are driven by `config.json` with CLI overrides
-- 🌍 **Multi-project + multi-environment** — one skill can cover multiple Jenkins jobs while remaining compatible with the original single-project config
-- 🛡️ **CSRF-safe** — automatically fetches Jenkins crumb for CSRF protection
 
 ### Prerequisites
 
@@ -248,21 +244,6 @@ On a successful run, the skill should do three things in order:
 
 You should then see a new queued or running build for the configured job in Jenkins. This is the most direct way to verify the success of the happy path.
 
-### Project Structure
-
-```text
-jenkins-deploy-skill/
-|-- SKILL.md
-|-- README.md
-|-- LICENSE
-|-- config.example.json
-|-- config.multi-project.example.json
-|-- .gitignore
-|-- CONTRIBUTING.md
-`-- scripts/
-    |-- trigger_jenkins_build.ps1   # Windows trigger script
-    `-- trigger_jenkins_build.py    # macOS/Linux trigger script
-```
 
 ### Recommended Git Workflow
 
@@ -479,15 +460,6 @@ git pull --ff-only
 
 这是一个通用的 AI Agent Skill，用来自动化“合并代码 -> 推送分支 -> 触发 Jenkins 构建”的工作流。它会通过 Git 将你的功能分支合并到部署分支，并通过 REST API 触发 Jenkins 参数化构建。
 
-### 特性
-
-- 🔀 **Git 流程** — 按清晰的分支集成和环境同步路径发布，严格禁止 force push
-- 🚀 **Jenkins 触发** — 通过 REST API 触发参数化构建
-- 🔐 **安全凭据** — 支持 Windows Credential Manager、macOS Keychain 和环境变量兜底
-- 📦 **自动安装 (Windows)** — 缺少 `CredentialManager` PowerShell 模块时会自动安装
-- ⚙️ **可配置** — 所有参数由 `config.json` 驱动，并支持命令行覆盖
-- 🌍 **多项目 + 多环境支持** — 一个 skill 可以覆盖多个 Jenkins 项目，同时保持对原有单项目配置的兼容
-- 🛡️ **CSRF 安全** — 自动获取 Jenkins crumb
 
 ### 环境检查
 
@@ -719,21 +691,6 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
 
 随后你应该能在 Jenkins 里看到对应 Job 新出现一条排队中或运行中的构建记录。这就是最直观的成功标志。
 
-### 项目结构
-
-```text
-jenkins-deploy-skill/
-|-- SKILL.md
-|-- README.md
-|-- LICENSE
-|-- config.example.json
-|-- config.multi-project.example.json
-|-- .gitignore
-|-- CONTRIBUTING.md
-`-- scripts/
-    |-- trigger_jenkins_build.ps1   # Windows 触发脚本
-    `-- trigger_jenkins_build.py    # macOS/Linux 触发脚本
-```
 
 ### 推荐的 Git 发布流程
 
@@ -941,7 +898,7 @@ git pull --ff-only
 
 | Field | Value |
 |-------|-------|
-| Version | `1.2.1` |
+| Version | `1.2.2` |
 | Author | `maiml` |
 | Repository | [maimingliang/jenkins-deploy-skill](https://github.com/maimingliang/jenkins-deploy-skill) |
 | Tags | `jenkins`, `deploy`, `ci-cd`, `git`, `devops` |
