@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/github/license/maimingliang/jenkins-deploy-skill?style=flat-square)
 ![Repo Size](https://img.shields.io/github/repo-size/maimingliang/jenkins-deploy-skill?style=flat-square)
 
-[English](./DOC_TECHNICAL.md#english) | [简体中文](#简体中文) | [技术文档 (Technical Docs)](./DOC_TECHNICAL.md)
+[English](./TECHNICAL_EN.md) | [简体中文](./TECHNICAL_ZH.md) | [技术文档汇总 (All Docs)](./TECHNICAL_ZH.md)
 
 ---
 
@@ -83,7 +83,9 @@ AI 会自动完成以下操作：
 ---
 
 ## 更多参考
-*   详细的参数说明与技术细节请查看 [技术文档 (DOC_TECHNICAL.md)](./DOC_TECHNICAL.md)。
+*   详细的参数说明与技术细节请查看：
+    *   [English Technical Docs](./TECHNICAL_EN.md)
+    *   [简体中文技术文档](./TECHNICAL_ZH.md)
 *   AI 助手规范定义请查看 [SKILL.md](./SKILL.md)。
 
 ---
