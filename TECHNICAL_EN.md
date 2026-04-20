@@ -9,6 +9,10 @@
 > [!CAUTION]
 > **Disclaimer**: This tool is designed for development and testing environments only. Automated merging and triggering of Jenkins builds involve high-risk operations. **DO NOT use this tool for production deployments.** The author is not responsible for any production issues or data loss caused by the use of this tool.
 
+[English](#technical-overview) | [简体中文](./TECHNICAL_ZH.md) | [Usage Guide (使用指南)](./README.md)
+
+---
+
 ## Technical Overview
 
 An AI Agent skill/prompt that automates the "merge -> push -> trigger Jenkins build" workflow. It merges your feature branch into a deploy branch via Git and triggers a parameterised Jenkins build through the REST API.

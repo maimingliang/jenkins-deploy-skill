@@ -9,6 +9,10 @@
 > [!CAUTION]
 > **免责声明 (Disclaimer)**：本工具仅建议用于开发和测试环境。由于自动化合并与 Jenkins 触发涉及核心业务流程，**严禁直接用于生产环境 (Production) 发布**。作者不对因使用本工具导致的任何生产事故、损失或数据丢失负责。
 
+[English](./TECHNICAL_EN.md) | [简体中文](#简体中文) | [使用指南 (Usage Guide)](./README.md)
+
+---
+
 ## 技术概览
 
 这是一个通用的 AI Agent Skill，用来自动化“合并代码 -> 推送分支 -> 触发 Jenkins 构建”的工作流。它会通过 Git 将你的功能分支合并到部署分支，并通过 REST API 触发 Jenkins 参数化构建。
