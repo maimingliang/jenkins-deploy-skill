@@ -82,3 +82,9 @@ AI 会自动完成以下操作：
 ## 更多参考
 *   详细的参数说明与技术细节请查看 [技术文档 (DOC_TECHNICAL.md)](./DOC_TECHNICAL.md)。
 *   AI 助手规范定义请查看 [SKILL.md](./SKILL.md)。
+
+---
+
+## License
+
+[MIT](./LICENSE)
