@@ -5,7 +5,12 @@
 ![Repo Size](https://img.shields.io/github/repo-size/maimingliang/jenkins-deploy-skill?style=flat-square)
 
 
-[English](#english) | [简体中文](#简体中文) | [图文上手指南 (Visual Guide)](./GUIDE.md)
+---
+
+> [!CAUTION]
+> **免责声明 (Disclaimer)**：本工具仅建议用于开发和测试环境。由于自动化合并与 Jenkins 触发涉及核心业务流程，**严禁直接用于生产环境 (Production) 发布**。作者不对因使用本工具导致的任何生产事故、损失或数据丢失负责。
+
+[English](#english) | [简体中文](#简体中文) | [图文上手指南 (Visual Guide)](./README.md)
 
 ---
 

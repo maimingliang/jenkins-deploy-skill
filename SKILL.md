@@ -9,6 +9,9 @@ description: >
   "push 到 test 环境", "deploy pre", "发布 demo-admin 的 test 环境", or "触发 Jenkins 构建".
 ---
 
+> [!CAUTION]
+> **DISCLAIMER**: This tool is for development and testing environments ONLY. Automated merging and Jenkins triggering involve high-risk operations. **DO NOT use this skill for production deployments.** The author is not responsible for any production incidents or consequences.
+
 ## Project Metadata
 
 | Field | Value |
@@ -142,6 +145,7 @@ The following are **always forbidden**:
 - `git push --force`
 - `git push --force-with-lease`
 - `git reset --hard`
+- **Deploying to a production environment** (Production sync should always be manual)
 
 ## Triggering the Jenkins Build
 
