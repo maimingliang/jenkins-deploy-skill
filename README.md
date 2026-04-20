@@ -67,7 +67,7 @@
 
 ---
 
-## 5. 实际发布演练 (Usage Example)
+## 5. 使用示例 (Usage Example)
 
 配置完成后，你可以尝试对 AI 助手说：`发布dev`。
 
