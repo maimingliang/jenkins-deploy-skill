@@ -5,7 +5,7 @@
 ![Repo Size](https://img.shields.io/github/repo-size/maimingliang/jenkins-deploy-skill?style=flat-square)
 
 
-[English](#english) | [简体中文](#简体中文)
+[English](#english) | [简体中文](#简体中文) | [图文上手指南 (Visual Guide)](./GUIDE.md)
 
 ---
 
@@ -19,16 +19,11 @@ An AI Agent skill/prompt that automates the "merge -> push -> trigger Jenkins bu
 Before getting started, verify your environment is ready:
 
 ```powershell
-# Check PowerShell version (required when running the Windows script)
-$PSVersionTable.PSVersion
 
 # Check Git is installed and configured
-git --version
 git config --global user.name
 git config --global user.email
 
-# Verify your Git remote is set up
-git remote -v
 ```
 
 ```bash
@@ -135,17 +130,6 @@ This section introduces the most common single-project lightweight configuration
    | `environments` | Environment blocks such as `dev`, `test`, and `pre`, each with its own Jenkins URL, job name, branch, and `credentialTarget` | see `config.example.json` |
    | `gitFlow` | Optional deployment workflow rules:<br>• `autoCommitBeforeDeploy`: Auto-commit local changes before deployment<br>• `allowCascadePromote`: Enable one-click sync from working branch to test/pre (automates integration and sync) | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
 
-5. Save the file and quickly verify the final content.
-
-   **Windows (PowerShell):**
-   ```powershell
-   Get-Content .\config.json
-   ```
-
-   **macOS / Linux (Bash):**
-   ```bash
-   cat ./config.json
-   ```
 
 <details>
 <summary>Option 2: Write config.json From The Command Line</summary>
@@ -456,7 +440,7 @@ git pull --ff-only
 
 ---
 
-## 中文
+## 简体中文
 
 这是一个通用的 AI Agent Skill，用来自动化“合并代码 -> 推送分支 -> 触发 Jenkins 构建”的工作流。它会通过 Git 将你的功能分支合并到部署分支，并通过 REST API 触发 Jenkins 参数化构建。
 
@@ -466,16 +450,11 @@ git pull --ff-only
 开始之前，请先确认环境已就绪：
 
 ```powershell
-# 检查 PowerShell 版本（Windows 运行脚本时需要）
-$PSVersionTable.PSVersion
 
 # 检查 Git 是否已安装并配置
-git --version
 git config --global user.name
 git config --global user.email
 
-# 确认 Git remote 已设置
-git remote -v
 ```
 
 ```bash
@@ -581,18 +560,6 @@ https://github.com/maimingliang/jenkins-deploy-skill skill
    | `branchParamName` | Jenkins 中分支参数名 | `BRANCH` |
    | `environments` | `dev`、`test`、`pre` 等环境块；每个环境都可以有自己的 Jenkins 地址、Job、分支和 `credentialTarget` | 参考 `config.example.json` |
    | `gitFlow` | 可选的发布流程规则：<br>• `autoCommitBeforeDeploy`: 部署前自动提交工作区修改<br>• `allowCascadePromote`: 允许从工作分支一键“直发” test/pre（自动完成集成与同步） | `{"autoCommitBeforeDeploy": true, "allowCascadePromote": true}` |
-
-5. 保存文件后，使用下面的命令快速确认最终配置内容。
-
-   **Windows (PowerShell):**
-   ```powershell
-   Get-Content .\config.json
-   ```
-
-   **macOS / Linux (Bash):**
-   ```bash
-   cat ./config.json
-   ```
 
 <details>
 <summary>方式二：命令行生成 config.json</summary>
