@@ -117,8 +117,11 @@ Recommended flow:
 4. Create a temporary local branch from `origin/<target-branch>`. **Include a unique random suffix** to avoid name collisions.
 5. Merge the correct source branch into that temporary branch
 6. Push with `git push origin HEAD:<target-branch>`
-7. Trigger Jenkins only after the push succeeds
-8. Switch back to the original branch and delete the temporary local branch
+7. If the original branch is a personal branch, switch back to it and merge the latest `origin/<target-branch>` into that personal branch after the push succeeds
+8. Trigger Jenkins only after the push succeeds and the post-push branch sync is complete
+9. Delete the temporary local branch
+
+The post-push sync step keeps the personal branch aligned with the environment branch that was just released. Do not do this on `dev`, `test`, `pre`, or other environment branches themselves.
 
 Example temporary branch name:
 
@@ -200,6 +203,31 @@ If the user also specifies a project, such as "发布 demo-admin 的 test 环境
 1. Use the matching branch flow for that environment under the requested project.
 2. Push the target branch for that environment.
 3. Pass `-Project <project> -TargetEnv <env>` on PowerShell or `--project <project> --target-env <env>` on Python so the script loads the correct project-specific Jenkins settings.
+
+If the repository is a backend monorepo with multiple independently deployable modules,
+do a module check before trusting the configured or default `jobName`:
+1. Inspect the changed files and identify whether the release touches one module or multiple modules such as `teacher`, `common-service`, or `yueread-admin`.
+2. If those modules share the same Jenkins base URL, credential target, branch, and branch parameter for the requested environment, keep using the environment's default Jenkins settings and override only `jobName` at runtime for each module.
+3. Trigger one Jenkins job per module. For example, if the same change set touches both `teacher` and `common-service`, release them separately with the same Jenkins address and credentials, but use `teacher` and `common-service` as the job names.
+4. Do not expand `config.json` just because one repository contains many modules that differ only by `jobName`. Temporary per-module job selection should stay as a runtime override, not a persistent config change.
+5. If the changed files do not clearly reveal the module name, or the module-to-job mapping is not stable, stop and ask the user to confirm the module or update `config.json`.
+6. If different modules actually require different Jenkins base URLs, credentials, or branch mappings, tell the user that this is no longer a simple `jobName` override case and the config should be updated explicitly.
+
+Use runtime `jobName` overrides like this when the environment settings are shared:
+
+**Windows (shared env, per-module job override)**
+```powershell
+powershell -ExecutionPolicy Bypass -File ./scripts/trigger_jenkins_build.ps1 `
+  -TargetEnv "dev" `
+  -JobName "teacher"
+```
+
+**macOS / Linux (shared env, per-module job override)**
+```bash
+python3 ./scripts/trigger_jenkins_build.py \
+  --target-env "dev" \
+  --job-name "teacher"
+```
 
 If the user asks to deploy `test` while still sitting on a personal branch, default to strict mode:
 
